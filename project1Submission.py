@@ -147,6 +147,55 @@ person1 = {"Cameron: Hey {player_name}, it’s Cam again. Just leaving you a mes
 person1keys = list(person1.keys()) # This is for the question indexes
 MainScore = [] #idx+1 equals person number. will be in form [pers1, pers2,...,persX]
 
+def character_selection(character_picked) -> int:
+    """
+           Allows the user to pick what character to talk to next
+
+           Parameters
+           -----------
+           character_picked: [int]
+                The character that the player wants to tak to next
+
+            returns
+            -------
+            int 
+                The next character chosen
+    """
+
+    list_num: int= [1,2,3]
+    person_info: dict[str] = {"Cameron": [["He is suprisingly normal compared to your other friends"], ["He Likes You"], ["(515) 602-6027"]],
+                              "Don": [["He is very abrasive and difficult but has very good social connections"], ["He Likes You"], ["(603) 502-6015"]], 
+                              "Sock": [["They can be very anxious and high maintence sometimes but can make a mean pumpkin pie"], ["They Like You"], ["(703) 503-6029"]]
+}
+    if 1 in list_num: 
+        print(f"Cameron \n\n{person_info["Cameron"][0]}\n\n{person_info["Cameron"][1]}\n\n{person_info["Cameron"][2]}\n\nType 1 to choose\n------------------------------------------")
+    else: 
+        person1picked = 1
+    if 2 in list_num: 
+        print(f"Don \n\n{person_info["Don"][0]}\n\n{person_info["Don"][1]}\n\n{person_info["Don"][2]}\n\nType 1 to choose\n------------------------------------------")
+    else: 
+            person2picked = 1
+    if 3 in list_num: 
+        print(f"Sock \n\n{person_info["Sock"][0]}\n\n{person_info["Sock"][1]}\n\n{person_info["Sock"][2]}\n\nType 1 to choose\n------------------------------------------")
+    else: 
+        person3picked = 1
+    if defined_zero == 0:
+        try: 
+            character_picked = input("Which character would you like to call next? Type 1, 2 or 3 to choose.") 
+            num_character: int = int(character_picked)
+            if num_character not in list_num: 
+                raise ValueError
+        except ValueError:
+            print(f"That wasn't an integer!")
+            print("\n\n") 
+            if num_character == 1: 
+                list_num.remove("1")
+            elif num_character == 2: 
+                list_num.remove("2")
+            elif num_character == 3: 
+                list_num.remove("3")
+            
+    return num_character
 
 #helper functions
 def ScoreAnswer(answer):
