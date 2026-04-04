@@ -59,7 +59,7 @@ def nameSet(person_name: str) -> str:
         try:
             person_name: str = input(Fore.BLACK + "What should we call you?\n" + Fore.WHITE + "-> ").title()
             if ("\\" not in person_name) and (person_name[0]+person_name[-1]).isalnum():     
-                print(Fore.LIGHTGREEN_EX + f"That's a good name, " + Fore.WHITE + person_name + Fore.GREEN +"! Your friends will remember it!\n")
+                print(Fore.LIGHTGREEN_EX + f"That's a good name, " + Fore.CYAN + person_name + Fore.GREEN +"! Your friends will remember it!\n")
                 break
             else:
                 raise ValueError
@@ -96,8 +96,8 @@ def checkpoint_execute() -> tuple[str, list[tuple[float,...], tuple[int,...]]]:
     Returns:
         tuple[str, list[tuple[float,...], tuple[int,...]]]: list of tuples of floats
     """
-    
     checkpoint_dictionary = {}
+    checkpoint_dictionary.clear()
     with open("checkpoints.txt", "r") as fs:
         file = fs.read().split("\n")
         file.pop(-1)
@@ -210,9 +210,14 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
     list_num: list[int]= [1,2,3]
     if num_of_friends < 3:
         if num_of_friends == 2: #switches the person you are calling if you only have 2 friends
-            if character_picked == 2:
-                return int(1)
-            return int(2)
+            if 0.0 < charcter_scores[character_picked-2] < 1.0: 
+                if character_picked == 2:
+                    print("Now Calling Cameron...")
+                    return (character_picked%2)+1
+                print("Now Calling Dawn...")
+                return (character_picked%2)+1
+            print("Redialing...")
+            return character_picked
         if num_of_friends == 1: #this skips picking the person if you only have 1 friend
             return int(1)
 
@@ -310,9 +315,9 @@ def VictoryConditions(scores: list[float]) -> int:
     ending_values = []
     for value in scores:
         if value > 0.75:
-            ending_values.append(2)
-        elif value < 0.25:
             ending_values.append(0)
+        elif value < 0.25:
+            ending_values.append(2)
         else:
             ending_values.append(1)
     if len(set(ending_values)) == 1:
@@ -359,8 +364,6 @@ def Menuscreen() -> None:
     numofPeople: int = 3
     no_checkpoints = False
     startval: float = 0.50 #this changes the starting number in MainScore. This is for us to tinker with to adjust difficulty/game length
-    MainScore.clear()
-    answered_questions.clear()
     Menu_text: str = """
                             
                             Stay Home Moon
@@ -421,6 +424,7 @@ def Menuscreen() -> None:
                 global loaded_checkpoint
                 loaded_checkpoint = True
                 MainGame(player_name)
+                break
             elif "EX" in menuinput: #exits program
                 exit_fun()
             else: #this is for wrong inputs not caught
@@ -578,7 +582,7 @@ def MainGame(name: str) -> None:
         anslenstr: str = ""
         if (questionnumber % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
             checkpoint_assign(checkp_score, MainScore, answered_questions, player_name) #assigns checkpoints to current position        
-        if (questionnumber % 6 == 0) and (checkpoint_loaded_ques_num != 0):
+        if questionnumber % 6 == 0:
             friend_number = character_selection(num_of_friends, friend_number, MainScore)
         curquestion, curanswers = NextQuestion(friend_number, answered_questions)
         curquestion = curquestion.format(player_name = player_name) #formats the player name into the text
@@ -628,9 +632,14 @@ def MainGame(name: str) -> None:
         MainScore[friend_number-1] = round(MainScore[friend_number-1] + CurAnswScore, 3) #this is to stop floating point weirdness
         friend_name_list = ["Cameron", "Dawn", "Sock"]
         color_val = str(MainScore[friend_number-1])
+        badendtxt = ""
         match floor(float(color_val)*4):
-            case -1 | 4:
-                color_val = Fore.RED + color_val
+            case -1:
+                color_val = Fore.RED + color_val    
+                badendtxt = badendtxt + "Somethings up with you, imma "+Fore.RED+"come over"+Fore.WHITE+" right away..\n"
+            case 4:
+                color_val = Fore.RED + color_val    
+                badendtxt = badendtxt + "You suck today, you know that? Goodbye, "+Fore.RED+"I dont think I want to speak to you again\n"                
             case 0 | 3:
                 color_val = Fore.YELLOW + color_val
             case _:
@@ -638,15 +647,16 @@ def MainGame(name: str) -> None:
 
 
         print (Fore.CYAN + f"\n{friend_name_list[friend_number-1]} is at {color_val}" + Fore.CYAN + " friendship points")
+        print(badendtxt,end="")
         sleep(1)
 
 
 
         if (MainScore[friend_number-1] <= 0) or (MainScore[friend_number-1] >= 1): 
             answered_questions[friend_number - 1] = 30
-        elif MainScore[friend_number-1] < 0.25:
+        elif MainScore[friend_number-1] <= 0.25:
             print("Warning! Your friend is growing concerned!")
-        elif MainScore[friend_number-1] > 0.75:
+        elif MainScore[friend_number-1] >= 0.75:
             print("Warning! Hatred is seeping through your friend!")
         sleep(2)
 
@@ -685,7 +695,7 @@ def EndingGame(victory: int, player_name: str) -> None:
     """
 
     
-    ending1_text: str = """
+    ending1_text: str = Fore.WHITE + """
                 The full moon rises but the evening remains calm. 
 
     Your friends are blissfully unaware of the transformation occurring in your
@@ -701,17 +711,17 @@ def EndingGame(victory: int, player_name: str) -> None:
 
     You’re gonna have a lot of catching up to do with them tomorrow.
 
-                                You Win!
+                                """+Fore.GREEN+"""You Win!
                                 """
     
     ending2_text: str = f"""
-                Your friends couldn’t be convinced to stay away. 
+                Your friends couldn’t be convinced to """+Fore.RED+"""stay away. 
 
-                            Do you know what that means? 
+                            """+Fore.BLACK+"""Do you know what that means? 
 
-             That means they’re coming to your house {player_name}. 
+             """+Fore.RED+"""That means they’re coming to your house """ +Fore.CYAN+ player_name+Fore.WHITE + """. 
 
-                    You failed them in the worst possible way.
+                    You """+Fore.BLACK+"""failed"""+Fore.WHITE+""" them in the worst possible way.
 
     The night of the full moon and subsequently Johnny’s party arrives. 
     Your transformation was interrupted by a knock on the door. It opens and
@@ -719,16 +729,16 @@ def EndingGame(victory: int, player_name: str) -> None:
     writhing. They hear your bones snap as they reshape and you are molded into
     a monster.
 
-    Maybe it’s for the best you don’t exactly remember what happened next. 
+    """+Fore.RED+"""Maybe it’s for the best you don’t exactly remember what happened next. 
     You’ll never forget the sight of the remains you left behind though.
 
-    You couldn’t stomach hiding them away like so many other unfortunate 
+    """+Fore.WHITE+"""You couldn’t stomach hiding them away like so many other unfortunate 
     bystanders before. You run, leaving this version of your life behind.
 
-                                    Bad End
+                                    """+Fore.RED+"""Bad End
                                     """
     
-    ending3_text: str = """
+    ending3_text: str = Fore.WHITE + """
        The night of the full moon comes and goes without incident.
 
                
@@ -742,10 +752,10 @@ def EndingGame(victory: int, player_name: str) -> None:
        didn’t just eat a bunch of innocent people! So you stand in your newly 
        re-organized apartment and cling to that small victory. 
 
-       You can’t help but feel a little lonely though…
+       """+Fore.RED+"""You can’t help but feel a little lonely though…
 
        
-                                       Bad End?
+                                       """+Fore.RED+"""Bad End?
                                 """
 
     match victory:
@@ -769,10 +779,17 @@ def EndingGame(victory: int, player_name: str) -> None:
             print("bugged code srry")
 
     sleep(2)
-    print("Game end\n...\n...\n...")
+    print(Fore.CYAN + "Game end\n...\n...\n...\n\n\n\n")
     sleep(2)
+    exit_fun(True)
+    
+    checkp_score.clear()
+    MainScore.clear()
+    answered_questions.clear()
+    global loaded_checkpoint
+    loaded_checkpoint = False
 
-def exit_fun() -> None:
+def exit_fun(go_to_menuscreen=False) -> None:
     """Ask user if they want to save their progress, then exits programme
 
     Returns:
@@ -818,8 +835,10 @@ def exit_fun() -> None:
                         else:
                             print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
                             exit()
-    print(Fore.WHITE + "Thank you for playing\n Exiting Program . . . " + Style.RESET_ALL)
-    exit()
+    if go_to_menuscreen == False:
+        print(Fore.WHITE + "Thank you for playing\n Exiting Program . . . " + Style.RESET_ALL)
+        exit()
+    
 
 
 if __name__ == '__main__':
