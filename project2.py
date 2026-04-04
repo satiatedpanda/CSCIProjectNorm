@@ -236,7 +236,10 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
         print("Dawn \n\n"+Fore.WHITE+f"{person_info['Don']}{define_likeability(charcter_scores[1])}\n" + Fore.BLACK + "Type 2 to choose\n------------------------------------------")
     if 3 in list_num: 
         print("Sock \n\n"+Fore.WHITE+f"{person_info['Sock']}{define_likeability(charcter_scores[2])}\n" + Fore.BLACK + "Type 3 to choose\n------------------------------------------")
-    anslenstr = f"{list_num[0]}, or {list_num[1]}"
+    if len(list_num) == 1:
+        anslenstr= f"{list_num[0]}"
+    else:
+        anslenstr = f"{list_num[0]}, or {list_num[1]}"
     
     while True:
         try: 
@@ -642,7 +645,7 @@ def MainGame(name: str) -> None:
         if (MainScore[friend_number-1] <= 0) or (MainScore[friend_number-1] >= 1): 
             answered_questions[friend_number - 1] = 30
         elif MainScore[friend_number-1] < 0.25:
-            print("Warning! Your friend is growing!")
+            print("Warning! Your friend is growing concerned!")
         elif MainScore[friend_number-1] > 0.75:
             print("Warning! Hatred is seeping through your friend!")
         sleep(2)
