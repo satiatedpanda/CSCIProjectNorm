@@ -98,34 +98,38 @@ def checkpoint_execute() -> tuple[str, list[tuple[float,...], tuple[int,...]]]:
     """
     checkpoint_dictionary = {}
     checkpoint_dictionary.clear()
-    with open("checkpoints.txt", "r") as fs:
-        file = fs.read().split("\n")
-        file.pop(-1)
-        if len(file) < 1:
-            print(Fore.RED + "Nothing to load. . .")
-            sleep(2)
-            return None, None
-        temp_check_list = file
-        for i in range(len(file)):
-            c_vals = tuple(temp_check_list[i].split(","))
-            if len(c_vals) == 7:
-                ckey, csc1, csc2, csc3, cq1, cq2, cq3 = c_vals
-                player_name = ckey[ckey.find("\\")+1:]
-                ckey = ckey[:-len(player_name)-1].upper()             
-                checkpoint_dictionary[ckey] = [(float(csc1),float(csc2),float(csc3)), (int(cq1),int(cq2),int(cq3))]
-            elif len(c_vals) == 5:
-                ckey, csc1, csc2, cq1, cq2 = c_vals
-                player_name = ckey[ckey.find("\\")+1:]
-                ckey = ckey[:-len(player_name)-1].upper()              
-                checkpoint_dictionary[ckey] = [(float(csc1),float(csc2)), (int(cq1),int(cq2))]
-            elif len(c_vals) == 3:
-                ckey, csc1, cq1 = c_vals
-                player_name = ckey[ckey.find("\\")+1:]
-                ckey = ckey[:-len(player_name)-1].upper()
-                checkpoint_dictionary[ckey] = [(float(csc1)), (int(cq1))]    
-            else:
-                print(Fore.RED + "ERROR how did this happen.... must be buggy code" + Style.RESET_ALL)
-                exit()      
+    try:
+        with open("checkpoints.txt", "r") as fs:
+            file = fs.read().split("\n")
+            file.pop(-1)
+            if len(file) < 1:
+                print(Fore.RED + "Nothing to load. . .")
+                sleep(2)
+                return None, None
+            temp_check_list = file
+            for i in range(len(file)):
+                c_vals = tuple(temp_check_list[i].split(","))
+                if len(c_vals) == 7:
+                    ckey, csc1, csc2, csc3, cq1, cq2, cq3 = c_vals
+                    player_name = ckey[ckey.find("\\")+1:]
+                    ckey = ckey[:-len(player_name)-1].upper()             
+                    checkpoint_dictionary[ckey] = [(float(csc1),float(csc2),float(csc3)), (int(cq1),int(cq2),int(cq3))]
+                elif len(c_vals) == 5:
+                    ckey, csc1, csc2, cq1, cq2 = c_vals
+                    player_name = ckey[ckey.find("\\")+1:]
+                    ckey = ckey[:-len(player_name)-1].upper()              
+                    checkpoint_dictionary[ckey] = [(float(csc1),float(csc2)), (int(cq1),int(cq2))]
+                elif len(c_vals) == 3:
+                    ckey, csc1, cq1 = c_vals
+                    player_name = ckey[ckey.find("\\")+1:]
+                    ckey = ckey[:-len(player_name)-1].upper()
+                    checkpoint_dictionary[ckey] = [(float(csc1)), (int(cq1))]    
+                else:
+                    print(Fore.RED + "ERROR how did this happen.... must be buggy code" + Style.RESET_ALL)
+                    exit()
+    except FileNotFoundError:
+        print(Fore.RED + "Nothing to load. . .")
+        sleep(2)     
 
     print(Fore.CYAN + "Where do you want to start at?")
 
