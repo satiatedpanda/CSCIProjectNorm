@@ -4,6 +4,7 @@ from colorama import Fore, Style, init, just_fix_windows_console
 from platform import system
 from math import floor
 
+
 """
 Docstring for project 2
 
@@ -231,15 +232,16 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
                 return character_picked
 
         #will only reach here if you have 3 friends selected
+
         if character_picked != 0:    
             list_num.remove(int(character_picked))
         else: #this returns 1 for the first character
-            if answered_questions[0] < 30:
+            if (answered_questions[0] < 30) and (sum(answered_questions) == 0):
                 character_picked = 1
                 return character_picked
         for i in range(len(list_num)-1,-1,-1): #restricts character picked to only ones with questions left to be answered
             if answered_questions[list_num[i]-1] >= 30:
-                list_num.remove(i+1)
+                list_num.remove(list_num[i])
         if len(list_num) == 0:
             print(Fore.WHITE+"All other friends "+Fore.RED+"wont talk to you right now...\n"+Fore.WHITE+f"Redialing {char_list[character_picked-1]}...")        
             return character_picked
@@ -277,7 +279,8 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
         character_picked = int(character_picked_new)
         
         return character_picked
-    except ValueError:
+    except ValueError as e:
+        print(e)
         print(character_picked, "value error somehow")
         exit_fun()
 
@@ -616,9 +619,10 @@ def MainGame(name: str) -> None:
     checkpoint_loaded_ques_num: int = 0
 
     while questionnumber < numquestions: #main loop for the game
+
         anslenlist: list = []
         anslenstr: str = ""
-        if (questionnumber % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
+        if (checkpoint_loaded_ques_num % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
             checkpoint_assign(checkp_score, MainScore, answered_questions, player_name) #assigns checkpoints to current position        
         if questionnumber % 6 == 0:
             friend_number = character_selection(num_of_friends, friend_number, MainScore)
