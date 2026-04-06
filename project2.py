@@ -63,7 +63,7 @@ def nameSet(person_name: str) -> str:
     while True:
         try:
             person_name: str = input(Fore.BLACK + "What should we call you?\n" + Fore.WHITE + "-> ").title()
-            if ("\\" not in person_name) and (person_name[0]+person_name[-1]).isalnum():     
+            if ("\\" not in person_name) and (person_name[0]+person_name[-1]).isalnum(): #restricts username to not have backspaces and the first and last characters are alphanumeric  
                 print(Fore.LIGHTGREEN_EX + f"That's a good name, " + Fore.CYAN + person_name + Fore.LIGHTGREEN_EX +"! Your friends will remember it!\n")
                 break
             else:
@@ -72,13 +72,14 @@ def nameSet(person_name: str) -> str:
             print(Fore.RED + "Name cannot be empty or contain backspaces. Try again.")
     return person_name
 
-def checkpoint_assign(checkp_score: dict[str, list[tuple[float,...], tuple[int,...]]], MainScore: list[float], answered_questions: list[int], player_name) -> None:
+def checkpoint_assign(checkp_score: dict[str, list[tuple[float,...], tuple[int,...]]], MainScore: list[float], answered_questions: list[int], player_name: str) -> None:
     """Takes current place in game and assigns a new checkpoint with your scores and answered questions
 
     Args:
         checkp_score (dict[str, list[tuple[float,...], tuple[int,...]]]): list of all checkpoints reached
         MainScore (list[float]): current score in main game
         answered_questions (list[int]): all answered questions in current game
+        player_name (str): user name
 
     Returns:
         None: 
@@ -106,12 +107,12 @@ def checkpoint_execute() -> tuple[str, list[tuple[float,...], tuple[int,...]]]:
     try:
         with open("checkpoints.txt", "r") as fs:
             file = fs.read().split("\n")
-            file.pop(-1)
+            file.pop(-1) #removes last index bc of spare newline character
             if len(file) < 1:
                 print(Fore.RED + "Nothing to load. . .\n")
-                return None, None
+                return None, None 
             temp_check_list = file
-            for i in range(len(file)):
+            for i in range(len(file)): #iterates over list of checkpoints
                 c_vals = tuple(temp_check_list[i].split(","))
                 if len(c_vals) == 7:
                     ckey, csc1, csc2, csc3, cq1, cq2, cq3 = c_vals
@@ -122,24 +123,24 @@ def checkpoint_execute() -> tuple[str, list[tuple[float,...], tuple[int,...]]]:
                     ckey, csc1, csc2, cq1, cq2 = c_vals
                     player_name = ckey[ckey.find("\\")+1:]
                     ckey = ckey[:-len(player_name)-1].upper()              
-                    checkpoint_dictionary[ckey] = [(float(csc1),float(csc2)), (int(cq1),int(cq2))]
+                    checkpoint_dictionary[ckey] = [(float(csc1),float(csc2)), (int(cq1),int(cq2))] #1) if you see this, please explain why I cant do tuple(float(csc1))... 
                 elif len(c_vals) == 3:
                     ckey, csc1, cq1 = c_vals
                     player_name = ckey[ckey.find("\\")+1:]
                     ckey = ckey[:-len(player_name)-1].upper()
-                    checkpoint_dictionary[ckey] = [(float(csc1)), (int(cq1))]    #if you see this, please explain why I cant do tuple(float(csc1))... keeps saying its not iterable
+                    checkpoint_dictionary[ckey] = [(float(csc1)), (int(cq1))]    #2) ...keeps saying its not iterable and I have no clue why, and my tests in a different file do work :sob:
                 else:
                     print(Fore.RED + "ERROR how did this happen.... must be buggy code" + Style.RESET_ALL)
                     exit()
     except FileNotFoundError:
         print(Fore.RED + "Nothing to load. . .\n")     
-        return None, None
+        return None, None #this is for accurate tuple decoupling, and had potential for adding something else I never added.
 
     print(Fore.CYAN + "Where do you want to start at?")
 
     checkp_key_list: list[str] = list(checkpoint_dictionary.keys())
     for key in checkp_key_list:
-        print(Fore.CYAN + key.title())
+        print(Fore.CYAN + key.title()) #title > upper change my mind
 
     #main game
     password = ""
@@ -173,8 +174,6 @@ def ScoreAnswer(anschoice: int) -> float:
     Returns:
         float: score of answer
     """
-    #This Function takes a chosen answer in the form of a list, and returns the appropriate score with some variance for replayability
-    #Retuned ansScore is of type Float
     ansScore: float = 0.00
     if anschoice == 3:
         ansScore = 0.1 + (randint(-5,10) / 100)
@@ -194,7 +193,7 @@ def define_likeability(score: float) -> str:
         str: colored string
     """
     
-    char_str = ""
+    char_str = "" #this feels self-explanitory on what it does
     if score < 0.25:
         char_str = Fore.LIGHTGREEN_EX + "They like you too much - they are in danger of coming to your house"
     elif score > 0.75:
@@ -215,7 +214,7 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
             int: The next character chosen for dialoge
         """
     
-    #this stuid function was the bane of my existance, was a pain to code, and a huge pain to debug... theres probably still bugs in here too...
+    #this stupid function was the bane of my existance, was a pain to code, and a huge pain to debug... theres probably still bugs in here too...
     try:
         list_num: list[int]= [1,2,3]
         char_list = ['Cameron', 'Dawn', 'Sock']
@@ -224,7 +223,7 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
                 if 0.0 < charcter_scores[character_picked-2] < 1.0: 
                     if (character_picked == 2) or (character_picked == 0):
                         print("\nNow Calling Cameron...\n")
-                        return (character_picked%2)+1
+                        return (character_picked%2)+1 #idk why but im very proud of this little statement
                     print("\nNow Calling Dawn...\n")
                     return (character_picked%2)+1
                 print("\n\n"+Fore.WHITE+ char_list[character_picked%2]+Fore.RED+" wont talk to you right now...\n"+Fore.WHITE+f"Redialing {char_list[(character_picked-1)%2]}...\n")   
@@ -254,7 +253,7 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
                                 "Sock": "They can be very anxious and high maintence sometimes but can make a mean pumpkin pie\n(703) 503-6029\n"}
         
 
-        if 1 in list_num: 
+        if 1 in list_num: #this is for showing who can be called
             print("Cameron \n\n"+Fore.WHITE+f"{person_info['Cameron']}{define_likeability(charcter_scores[0])}\n" + Fore.BLACK + "Type 1 to choose\n------------------------------------------")
         if 2 in list_num: 
             print("Dawn \n\n"+Fore.WHITE+f"{person_info['Don']}{define_likeability(charcter_scores[1])}\n" + Fore.BLACK + "Type 2 to choose\n------------------------------------------")
@@ -265,7 +264,7 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
         else:
             anslenstr = f"{list_num[0]}, or {list_num[1]}"
         
-        while True:
+        while True: #user input on who to call
             try: 
                 character_picked_new = input(Fore.BLACK + f"Which character would you like to call next? Type {anslenstr} to choose. or \"exit\" to exit\n"+ Fore.WHITE +"-> ") 
                 if "EX" in character_picked_new.upper():
@@ -367,13 +366,13 @@ def VictoryConditions(scores: list[float]) -> int:
     return Endgametype
 
 def sleep_func(n: int) -> None:
-    """checks if debug mode is enabled (true/false value) in main block
+    """checks if debug mode is enabled (true/false value) in main block. If yes removes all sleep functions.
 
     Args:
         n (int): int for how long to sleep
     """
     global debugmode
-    if debugmode == True:
+    if debugmode == True: #this function is the goat, best addition I (jacob) added. this has saved me HOURS
         return
     else:
         sleep(n)
@@ -441,15 +440,15 @@ def Menuscreen() -> None:
 
             elif "NA" in menuinput:
                 player_name = nameSet(player_name)
-            elif "FR" in menuinput: #sets friends
+            elif "FR" in menuinput:
                 numofPeople = friendsCnt(numofPeople)
                 print(Fore.CYAN + "Friends set to " +Fore.WHITE+ str(numofPeople))
             elif "LO" in menuinput:
-                checkpoint = checkpoint_execute()
+                checkpoint = checkpoint_execute() #loads checkpoints from file
                 player_name, game_vals = checkpoint
                 if (not player_name or not game_vals): #I think this will work, it checks if the bool(value) equals false
                     break
-                if type(game_vals[0]) is float:
+                if type(game_vals[0]) is float: #checks if game_val[0] is not None
                     MainScore.append(game_vals[0])
                     answered_questions.append(game_vals[1])
                 else:
@@ -459,11 +458,11 @@ def Menuscreen() -> None:
                         answered_questions.append(i)
                 global loaded_checkpoint
                 loaded_checkpoint = True
-                return MainGame(player_name)
+                return MainGame(player_name) #starts straight into game, skips start_game function
 
             elif "EX" in menuinput: #exits program
                 exit_fun()
-            elif "DEBUG" in menuinput:
+            elif "DEBUG" in menuinput: #hidden test that gets rid of all sleep statements in sleep_func(). Just makes it much faster to debug
                 print("Debug mode enabled")
                 global debugmode
                 debugmode = True
@@ -533,7 +532,7 @@ def StartGame(name: str, startval: float, numpeople: int) -> None:
     what you’ve gotta do."""
     
     
-    print(Intro_text1)
+    print(Intro_text1) #these all print stuff with sleep functions inbetween.. which I just realized at 8:45 4/5 that I could add inbetween with concatenation...
     sleep_func(4)
     print(introtex2)
     sleep_func(3)
@@ -543,7 +542,7 @@ def StartGame(name: str, startval: float, numpeople: int) -> None:
     sleep_func(4)
     print(introtext6)
     sleep_func(4)
-    if len(MainScore) == 0: #assigns startval for each friend. wont work if mainscore has somthing in it - possible error there
+    if len(MainScore) == 0: #assigns startval for each friend. wont work if mainscore has somthing in it - possible error if mainscore isnt cleared beforehand
         for i in range(numpeople):
             MainScore.append(startval)
             answered_questions.append(0)
@@ -626,15 +625,17 @@ def MainGame(name: str) -> None:
         anslenstr: str = ""
         if (checkpoint_loaded_ques_num % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
             checkpoint_assign(checkp_score, MainScore, answered_questions, player_name) #assigns checkpoints to current position        
-        if questionnumber % 6 == 0:
+        if questionnumber % 6 == 0: #switches who you call every 6 questions
             friend_number = character_selection(num_of_friends, friend_number, MainScore)
-        curquestion, curanswers = NextQuestion(friend_number, answered_questions)
+        curquestion, curanswers = NextQuestion(friend_number, answered_questions) #gets next question/answers
         curquestion = curquestion.format(player_name = player_name) #formats the player name into the text
-        if numquestions - questionnumber > 1:
+        if numquestions - questionnumber > 1: #checks if its the final quesiton
             print(Fore.MAGENTA + "──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──.·:*¨༺" + Fore.YELLOW + " ☾ " + Fore.MAGENTA + "༻¨*:·.──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──" + Fore.WHITE +Style.DIM + f"\n\n{numquestions - questionnumber} questions remain\n")
         else:
             print(Fore.YELLOW+ Style.BRIGHT + f"Final Question")
         sleep_func(1.5)
+
+        #block below is for formating border around the question
         lonegest_newline_length = max(curquestion.split("\n"), key=len)
         dash_str = ""
         for idx in range(0,len(lonegest_newline_length)-4,2):
@@ -653,8 +654,8 @@ def MainGame(name: str) -> None:
         for i in range(len(anslenlist)):
             anslenstr = anslenstr + str(anslenlist[i]) + ", "
         anslenstr = anslenstr[:-3] + f"or {anslenlist[-1]}"
-        while True:
-            try: #this is for input validation
+        while True: #block for restricting user input to an answer
+            try:
                 if questionnumber < 4:
                     choice = input(Fore.BLACK + f"Pick Answers {anslenstr} by typing that number (ex to exit if stuck)\n"+Fore.WHITE+"-> ")
                 else:
@@ -671,13 +672,13 @@ def MainGame(name: str) -> None:
             except ValueError:
                 print(Fore.RED + "Invalid input, please type exactly one of the numbers shown")
             print()
-        CurAnswScore = ScoreAnswer(curanswers[choice-1][1])
-        answered_questions[friend_number - 1] += 1
+        CurAnswScore = ScoreAnswer(curanswers[choice-1][1]) #scores answer
+        answered_questions[friend_number-1] += 1
         MainScore[friend_number-1] = round(MainScore[friend_number-1] + CurAnswScore, 4) #this is to stop floating point weirdness
         friend_name_list = ["Cameron", "Dawn", "Sock"]
         color_val = str(MainScore[friend_number-1])
         badendtxt = ""
-        match floor(float(color_val)*4):
+        match floor(float(color_val)*4): #this is for neat color shenanigans
             case -1:
                 color_val = Fore.RED + color_val    
                 badendtxt = badendtxt + "Somethings up with you, imma "+Fore.RED+"come over"+Fore.WHITE+" right away..\n"
@@ -688,13 +689,9 @@ def MainGame(name: str) -> None:
                 color_val = Fore.YELLOW + color_val
             case _:
                 color_val = Fore.GREEN + color_val
-
-
         print (Style.DIM + f"\n{friend_name_list[friend_number-1]} is at {color_val}" + Style.DIM + " friendship points")
         print(badendtxt,end="")
         sleep_func(1)
-
-
 
         if (MainScore[friend_number-1] <= 0.0) or (MainScore[friend_number-1] >= 1.0): 
             answered_questions[friend_number - 1] = 30
@@ -886,7 +883,7 @@ def exit_fun(go_to_menuscreen=False) -> None:
         if "1" in checkpoint_write:
             global loaded_checkpoint
             if loaded_checkpoint == True:
-                with open("checkpoints.txt", "a") as fd:
+                with open("checkpoints.txt", "a") as fd: 
                     for key, value in checkp_score.items():
                         if len(value[0]) == 3:
                             sc1, sc2, sc3 = value[0]
@@ -904,7 +901,7 @@ def exit_fun(go_to_menuscreen=False) -> None:
                             print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
                             exit()            
             else:    
-                with open("checkpoints.txt", "w") as fd:
+                with open("checkpoints.txt", "w") as fd: #ugly, but afaik needed to decouple tuples of differing length
                     for key, value in checkp_score.items():
                         if len(value[0]) == 3:
                             sc1, sc2, sc3 = value[0]
@@ -921,7 +918,6 @@ def exit_fun(go_to_menuscreen=False) -> None:
                         else:
                             print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
                             exit()
-    checkp_score.clear()
     if go_to_menuscreen == False:
         print(Fore.WHITE + "Thank you for playing\n Exiting Program . . . " + Style.RESET_ALL)
         exit()
