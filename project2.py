@@ -223,9 +223,9 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
                 if 0.0 < charcter_scores[character_picked-2] < 1.0: 
                     if (character_picked == 2) or (character_picked == 0):
                         print("\nNow Calling Cameron...\n")
-                        return (character_picked%2)+1 #idk why but im very proud of this little statement
-                    print("\nNow Calling Dawn...\n")
-                    return (character_picked%2)+1
+                    else:
+                        print("\nNow Calling Dawn...\n")
+                    return (character_picked%2)+1 #idk why but im very proud of this little statement
                 print("\n\n"+Fore.WHITE+ char_list[character_picked%2]+Fore.RED+" wont talk to you right now...\n"+Fore.WHITE+f"Redialing {char_list[(character_picked-1)%2]}...\n")   
                 return character_picked
             if num_of_friends == 1: #this skips picking the person if you only have 1 friend
@@ -244,7 +244,7 @@ def character_selection(num_of_friends: int, character_picked: int, charcter_sco
             if answered_questions[list_num[i]-1] >= 30:
                 list_num.remove(list_num[i])
         if len(list_num) == 0:
-            print("\n\n"+Fore.WHITE+"All other friends "+Fore.RED+"wont talk to you right now...\n"+sleep_func(4)+Fore.WHITE+f"Redialing {char_list[character_picked-1]}...\n")        
+            print("\n\n"+Fore.WHITE+"All other friends "+Fore.RED+"wont talk to you right now...\n"+Fore.WHITE+f"Redialing {char_list[character_picked-1]}...\n")        
             return character_picked
 
 
@@ -303,630 +303,6 @@ def NextQuestion(friend_num: int, answered_questions_list: list[int]) -> tuple[s
     question: str = ""
     answers: list = []
     answered_ques_friend = answered_questions_list[friend_num-1]
-    try:
-        if friend_num == 1:
-            question = question + str(person1keys[answered_ques_friend])
-            answers = person1[question]
-        elif friend_num == 2:
-            question = question + str(person2keys[answered_ques_friend])
-            answers = person2[question]
-        elif friend_num == 3:
-            question = question + str(person3keys[answered_ques_friend])
-            answers = person3[question]          
-        else:
-            print(Fore.RED + "error" + Style.RESET_ALL)
-            print(checkp_score)
-            exit()
-    except IndexError:
-        print("This is index out of bounds error. Friend num = ", friend_num)
-        print(checkp_score)
-
-
-    return(question, answers)
-
-def VictoryConditions(scores: list[float]) -> int:
-    """Gets victory conditions for current friend score 
-
-    Args:
-        score (float): Current score for current character
-
-    Returns:
-        int: int describing the endgametype reached, returns 0 if no endgame was reached
-    """
-
-    #This function takes in a score value, and returns values based upon if the score meets certain criteria
-    #Returns Endgametype of type int
-    Endgametype: int = 0
-    ending_values = []
-    for value in scores:
-        if value > 0.75:
-            ending_values.append(0)
-        elif value < 0.25:
-            ending_values.append(2)
-        else:
-            ending_values.append(1)
-    if len(set(ending_values)) == 1:
-        idx = ending_values[0]
-        if idx == 2: #all eaten
-            Endgametype = 20
-        elif idx == 0: #all come to house
-            Endgametype = 30
-        else: #best ending, nobody gets hurt
-            Endgametype = 11
-    elif 2 in ending_values:
-        Endgametype = 12 #atleast one person dies
-    elif 1 in ending_values:
-        Endgametype = 13 #atleast one person hates you, but none died
-    else:
-        print(Fore.RED + "this is not supposed to happen... I blame the users" + Style.RESET_ALL)
-        exit()
-
-    #victory conditions are in the docstring for endinggame()
-    #scores larger than 100 are victory conditions
-    return Endgametype
-
-def sleep_func(n: int) -> None:
-    """checks if debug mode is enabled (true/false value) in main block. If yes removes all sleep functions.
-
-    Args:
-        n (int): int for how long to sleep
-    """
-    global debugmode
-    if debugmode == True: #this function is the goat, best addition I (jacob) added. this has saved me HOURS
-        return
-    else:
-        sleep(n)
-        return
-
-
-#game functions
-def WholeProgram() -> None:
-    """Endlessly repeats menuscreen
-
-    Returns:
-        None: none
-    """   
-
-    while True:
-        Menuscreen()
-
-def Menuscreen() -> None:
-    """Menu screen, this leads into the main game, sets your name, number of friends, loads game from checkpoint if selected, and can exit the program.
-
-    Returns:
-        None: none
-    """   
-    #Main menu
-    player_name: str = ""
-    nonamechecknum: int = 2
-    numofPeople: int = 3
-    startval: float = 0.50 #this changes the starting number in MainScore. This is for us to tinker with to adjust difficulty/game length
-    Menu_text: str = """
-                            
-                        Stay Home Moon
-                            
-                            
-                        Play
-                        Set Name
-                        Friends Count
-                        Load
-                        Exit
-
-    """
-    #ascii pattern made from https://www.aestheticsymbols.me/dot.html
-    print(Fore.MAGENTA + "            ┌── " + Fore.YELLOW + "⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──.·:*¨༺ " + Fore.YELLOW + "☾" + Fore.MAGENTA + " ༻¨*:·.── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──┐")
-    print(Menu_text)
-    print(Fore.MAGENTA + "            └── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──•,¸,.·'  '·.,¸,•── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──┘")
-    while True:
-        try: #this is for input validation
-
-            menuinput: str = input(Fore.BLACK + "What do you want to do? Type \"Play\", \"Name\", \"Friends\", \"Load\", or \"Exit\"\n"+ Fore.WHITE +"-> ").upper()
-            inputcheck: list = ["PL", "NA", "FR", "LO", "EX", "DEBUG"] #checking substrings for higher chance of getting right thing
-            
-            if any(substring in menuinput for substring in inputcheck) == False:
-                raise ValueError
-            if "PL" in menuinput: #play
-                if len(player_name) == 0:
-                    if nonamechecknum == 0: #this is a funny easteregg
-                        print(Fore.CYAN + "Fine, name has been set to 'Billybob'. You win")
-                        player_name = "Billybob"
-                        sleep_func(2)
-                        return StartGame(player_name, startval, numofPeople)
-                    else:
-                        print("Please set a name first")
-                        nonamechecknum -= 1
-                else:
-                    return StartGame(player_name, startval, numofPeople)
-
-            elif "NA" in menuinput:
-                player_name = nameSet(player_name)
-            elif "FR" in menuinput:
-                numofPeople = friendsCnt(numofPeople)
-                print(Fore.CYAN + "Friends set to " +Fore.WHITE+ str(numofPeople))
-            elif "LO" in menuinput:
-                checkpoint = checkpoint_execute() #loads checkpoints from file
-                player_name, game_vals = checkpoint
-                if (not player_name or not game_vals): #I think this will work, it checks if the bool(value) equals false
-                    break
-                if type(game_vals[0]) is float: #checks if game_val[0] is not None
-                    MainScore.append(game_vals[0])
-                    answered_questions.append(game_vals[1])
-                else:
-                    for i in game_vals[0]:
-                        MainScore.append(i)
-                    for i in game_vals[1]:
-                        answered_questions.append(i)
-                global loaded_checkpoint
-                loaded_checkpoint = True
-                return MainGame(player_name) #starts straight into game, skips start_game function
-
-            elif "EX" in menuinput: #exits program
-                exit_fun()
-            elif "DEBUG" in menuinput: #hidden test that gets rid of all sleep statements in sleep_func(). Just makes it much faster to debug
-                print("Debug mode enabled")
-                global debugmode
-                debugmode = True
-                player_name = "debugname"
-                print("set name to 'debugname'")
-
-            else: #this is for wrong inputs not caught
-                print(Fore.RED + "how did you get here. bad !!@%$@#@#!!!$#@#@#@\n" + Style.RESET_ALL)
-                exit()
-        except ValueError:
-            print(Fore.RED + "Invalid input, please type one of the four options\n")    
-
-def StartGame(name: str, startval: float, numpeople: int) -> None:
-    """Prints start game text, assigns MainScore starting values, and asks user if they want to start the tutorial
-
-    Args:
-        name (str): User name
-        startval (float): starting value for all character's scores (0.5)
-        numpeople (int): number of friends chosen for the game
-    Raises:
-        ValueError: restricts user input to value in corlist
-    Returns:
-        None: none
-    """
-    
-    Intro_text1: str = Fore.WHITE + f"""
-    Turns out being a werewolf isn’t what fantasy novels chock it up to be, at 
-    least not a modern werewolf anyway. There’s no running through the woods 
-    and ‘unleashing your inner wolf’ or any of that nonsense depicted in books 
-    with scandalous oil paintings for covers. It’s still just like being any 
-    other person that has to make it day to day…. except with the ‘fun’ 
-    challenge of turning into a murderous beast once a month. You’ve had to 
-    learn first hand the issues that come with that ranging from copious 
-    amounts of shedding that your vacuum never seems to fully clean up, to the 
-    bloody messes that you need to discreetly clean up when you can’t keep 
-    yourself locked up during those pesky full moons. It really is a pain to 
-    have to change your name and abandon your entire life every time just one 
-    teensy little security measure just doesn’t hold up.\n"""
-
-    introtex2 = Fore.WHITE + """    It’s been a couple months since the last time you’ve had to jump ship, and 
-    this time you’re going by """ + Fore.CYAN + name + Fore.WHITE +  """.\n"""
-
-    introtex3 = Fore.WHITE + """    You’ve managed to settle in quite nicely. You’ve scored a great job and 
-    managed to land a spot in a semi-stable group of friends. You’ve finally 
-    found the best way to keep from going on a bloodthirsty rampage during the 
-    full moons. Thanks to your new iron clad security, courtesy of ‘Trademarked 
-    Hardware and Home Improvement’ store, there’s absolutely no way you’re 
-    busting through those locks! So now it’s just you, a movie that you 
-    probably won’t finish due to your impending transformation, and a supply 
-    of tranquilizer laced meat in the fridge all settled in for a completely 
-    uneventful evening."""
-    
-    introtex5:str = """
-
-                            """+Fore.RED+"""So why is your phone ringing?"""
-    
-    introtext6: str = Fore.WHITE+""" 
-
-    Looking at the number on display, you see Cameron’s name popping up. Before
-    you can think to answer it all rushes in: the party and the plans you made 
-    with each of your friends. That was tonight! You scheduled that all on the 
-    night of the full moon like some giant idiot!
-
-    You’re gonna have to cancel all of your plans and you just know your 
-    friends aren’t going to make that easy. The alternative however is 
-    potentially eating them at worst, possibly only mauling them at best. It’s
-    what you’ve gotta do."""
-    
-    
-    print(Intro_text1) #these all print stuff with sleep functions inbetween.. which I just realized at 8:45 4/5 that I could add inbetween with concatenation...
-    sleep_func(4)
-    print(introtex2)
-    sleep_func(3)
-    print(introtex3)
-    sleep_func(2)
-    print(introtex5)
-    sleep_func(4)
-    print(introtext6)
-    sleep_func(4)
-    if len(MainScore) == 0: #assigns startval for each friend. wont work if mainscore has somthing in it - possible error if mainscore isnt cleared beforehand
-        for i in range(numpeople):
-            MainScore.append(startval)
-            answered_questions.append(0)
-
-
-    while True: #asks for input to do tutorial or not
-        try: #this is for input validation
-            tutorialY: str = input(Fore.BLACK + """\n                                   1) View Tutorial?
-                                   2) Answer the call\n"""+Fore.WHITE+"-> ")
-            corlist: list = ["1", "2"]
-            if tutorialY not in corlist:
-                raise ValueError
-            if "1" in tutorialY:
-                Tutorial()
-            break
-        except ValueError:
-            print(Fore.RED + "Invalid input, please type exactly \"1\" or \"2\"")
-    print(Style.DIM + "\nPicking up the call in 3...\n2...\n1...")
-    sleep_func(1)
-    MainGame(name) #this goes into the main game
-        #block was found in stackoverflow: https://stackoverflow.com/questions/41832613/python-input-validation-how-to-limit-user-input-to-a-specific-range-of-integers
-
-def Tutorial() -> None:
-    """Prints tutorial text (potential to add stuff later)
-
-    Returns:
-        None: none
-    """
-    Tut_text = """
-    Welcome to Stay Home Moon! You’ve found yourself in a bit of a spot,\n 
-    haven’t you? The goal of the game is pretty simple: Don’t Eat Your Friends.
-
-    You will have to navigate a series of phone calls with your friends. 
-    You’ll be presented with a series of responses that will shape how your 
-    friend reacts to the conversation. You will select your response by typing 
-    the correlating number into the command line. There are three things to 
-    remember when selecting a response:
-
-    -Your words have weight.
-    -Some of your options will have a greater impact than others.
-    -The ultimate goal is to not eat your friends, but try not to completely 
-     ruin your relationships.
-
-    Your goal is to keep your friendship points between 0.25 and 0.75. 
-    If you manage this by the last question, and the value is in that interval 
-                                   you win!
-
-                                   Be Warned -
-        if it ever falls to 0, or makes it to 1, the game will end immediatly.
-
-    You should really pick up that phone now, Cameron’s waiting, good luck!\n"""
-    print(Fore.WHITE + Tut_text)
-    sleep_func(2)
-
-def MainGame(name: str) -> None:
-    """Main block of code for game. Runs the game until a victory condition is reached
-
-    Args:
-        name (str): user name
-        num_of_friends (int): selected number of characters to play against
-
-    Raises:
-        ValueError: restricts user input to be either a number 1-3, or include the str 'ex' to exit the game
-    
-    Returns:
-        None: none
-    """
-    #The guts of our game! Takes in the Player name, and then calls the helper functions to complete the processes in the game!
-    VictoryCond: int = 0
-    player_name: str = name
-    friend_number: int = 0
-    num_of_friends = len(MainScore)
-    numquestions: int = 30 * num_of_friends
-    questionnumber: int = sum(answered_questions)
-    checkpoint_loaded_ques_num: int = 0
-
-    while questionnumber < numquestions: #main loop for the game
-
-        anslenlist: list = []
-        anslenstr: str = ""
-        if (checkpoint_loaded_ques_num % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
-            checkpoint_assign(checkp_score, MainScore, answered_questions, player_name) #assigns checkpoints to current position        
-        if questionnumber % 6 == 0: #switches who you call every 6 questions
-            friend_number = character_selection(num_of_friends, friend_number, MainScore)
-        curquestion, curanswers = NextQuestion(friend_number, answered_questions) #gets next question/answers
-        curquestion = curquestion.format(player_name = player_name) #formats the player name into the text
-        if numquestions - questionnumber > 1: #checks if its the final quesiton
-            print(Fore.MAGENTA + "──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──.·:*¨༺" + Fore.YELLOW + " ☾ " + Fore.MAGENTA + "༻¨*:·.──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──" + Fore.WHITE +Style.DIM + f"\n\n{numquestions - questionnumber} questions remain\n")
-        else:
-            print(Fore.YELLOW+ Style.BRIGHT + f"Final Question")
-        sleep_func(1.5)
-
-        #block below is for formating border around the question
-        lonegest_newline_length = max(curquestion.split("\n"), key=len)
-        dash_str = ""
-        for idx in range(0,len(lonegest_newline_length)-4,2):
-            dash_str = dash_str + "- "
-        dash_str = dash_str + "-"
-        print(Fore.RED+ "┌──" + Fore.BLACK + dash_str + Fore.RED+"──┐")
-        for i in curquestion.split("\n"):
-            print(Fore.BLUE +"  "+ i)
-        print(Fore.RED+ "└──" + Fore.BLACK + dash_str + Fore.RED+"──┘\n")
-        sleep_func(2)
-        
-        for i in range(len(curanswers)): #prints answers out
-            print(Fore.WHITE + curanswers[i][0])
-            anslenlist.append(i+1)
-            sleep_func(0.5)
-        for i in range(len(anslenlist)):
-            anslenstr = anslenstr + str(anslenlist[i]) + ", "
-        anslenstr = anslenstr[:-3] + f"or {anslenlist[-1]}"
-        while True: #block for restricting user input to an answer
-            try:
-                if questionnumber < 4:
-                    choice = input(Fore.BLACK + f"Pick Answers {anslenstr} by typing that number (ex to exit if stuck)\n"+Fore.WHITE+"-> ")
-                else:
-                    choice = input(Fore.BLACK + f"Pick Answers {anslenstr}\n"+Fore.WHITE+"-> ")
-                if choice.isdigit() == True:
-                    choice = int(choice)
-                    if choice not in anslenlist:
-                        raise ValueError
-                    break
-                else:
-                    if "ex" in choice.lower():
-                        exit_fun()
-                    raise ValueError
-            except ValueError:
-                print(Fore.RED + "Invalid input, please type exactly one of the numbers shown")
-            print()
-        CurAnswScore = ScoreAnswer(curanswers[choice-1][1]) #scores answer
-        answered_questions[friend_number-1] += 1
-        MainScore[friend_number-1] = round(MainScore[friend_number-1] + CurAnswScore, 4) #this is to stop floating point weirdness
-        friend_name_list = ["Cameron", "Dawn", "Sock"]
-        color_val = str(MainScore[friend_number-1])
-        badendtxt = ""
-        match floor(float(color_val)*4): #this is for neat color shenanigans
-            case -1:
-                color_val = Fore.RED + color_val    
-                badendtxt = badendtxt + "Somethings up with you, imma "+Fore.RED+"come over"+Fore.WHITE+" right away..\n"
-            case 4:
-                color_val = Fore.RED + color_val    
-                badendtxt = badendtxt + "You suck today, you know that? Goodbye, "+Fore.RED+"I dont think I want to speak to you again\n"                
-            case 0 | 3:
-                color_val = Fore.YELLOW + color_val
-            case _:
-                color_val = Fore.GREEN + color_val
-        print (Style.DIM + f"\n{friend_name_list[friend_number-1]} is at {color_val}" + Style.DIM + " friendship points")
-        print(badendtxt,end="")
-        sleep_func(1)
-
-        if (MainScore[friend_number-1] <= 0.0) or (MainScore[friend_number-1] >= 1.0): 
-            answered_questions[friend_number - 1] = 30
-        elif MainScore[friend_number-1] <= 0.25:
-            print("Warning! Your friend is growing concerned!")
-        elif MainScore[friend_number-1] >= 0.75:
-            print("Warning! Hatred is seeping through your friend!")
-        sleep_func(2)
-
-        if (sum(answered_questions) % 6 == 0) and num_of_friends != 1:
-            char_list = ['Cameron', 'Dawn', 'Sock']
-            print(f"\nCall ended with {char_list[friend_number-1]}")        
-            sleep_func(1)
-        print("\n\n")
-        questionnumber: int = sum(answered_questions)
-        checkpoint_loaded_ques_num += 1
-                 
-    VictoryCond = VictoryConditions(MainScore)
-    EndingGame(VictoryCond, player_name)
-
-def EndingGame(victory: int, player_name: str) -> None:
-    """Prints ending game text based on victory condition
-
-    Args:
-        victory (int): integer correspoding to a specific victory condition
-        player_name (str): user name
-
-    Returns:
-        None: none
-    """   
-    #Takes in the victory condition of type int, and the player name (str)
-    #Prints the endings depending on the victory condition
-    """
-    victory condition 0: not possible, 0 means game is running
-
-    victory condition 10: out of questions. This is good, and can lead into winning flawlessly
-        victory condition 1.1: Flawless victory, all friends dont come and dont hate you
-        victory condition 1.2: Atleast 1 friend died
-        victory condition 1.3: All survived, but at least 1 hates you 
-    victory condition 2: All eaten - all friends get eaten
-    victory condition 3: All hate you - all friends hate you
-    """
-
-    
-    ending1_text: str = Fore.WHITE + """
-                The full moon rises but the evening remains calm. 
-
-    Your friends are blissfully unaware of the transformation occurring in your
-    solitary apartment. The group chat is filling with messages. Pictures and 
-    videos of varying clarity or what’s happening at the party. It seems this 
-    is how they’re trying to include you, and maybe convince you to come to the
-    next one.
-
-    Cameron’s sending pictures of everyone having a good time. You can see Dawn
-    standing by while Sock tries to talk to Johnny’s randos. From the still 
-    shots it looks like their actually doing pretty well, even if they look 
-    like they want to throw up. 
-
-    You’re gonna have a lot of catching up to do with them tomorrow.
-
-                                """+Fore.GREEN+"""You Win!
-                                """
-    
-    ending2_text: str = f"""
-                Your friends couldn’t be convinced to """+Fore.RED+"""stay away. 
-
-                            """+Fore.BLACK+"""Do you know what that means? 
-
-             """+Fore.RED+"""That means they’re coming to your house """ +Fore.CYAN+ player_name+Fore.WHITE + """. 
-
-                    You """+Fore.BLACK+"""failed"""+Fore.WHITE+""" them in the worst possible way.
-
-    The night of the full moon and subsequently Johnny’s party arrives. 
-    Your transformation was interrupted by a knock on the door. It opens and
-    concerned gazes of the people you care about witness you hunched over and 
-    writhing. They hear your bones snap as they reshape and you are molded into
-    a monster.
-
-    """+Fore.RED+"""Maybe it’s for the best you don’t exactly remember what happened next. 
-    You’ll never forget the sight of the remains you left behind though.
-
-    """+Fore.WHITE+"""You couldn’t stomach hiding them away like so many other unfortunate 
-    bystanders before. You run, leaving this version of your life behind.
-
-                                    """+Fore.RED+"""Bad End
-                                    """
-    
-    ending3_text: str = Fore.WHITE + """
-       The night of the full moon comes and goes without incident.
-
-               
-       The sun rises to a slightly disheveled apartment, but a quick tidy and 
-       nothing out of the ordinary appears to have occurred.
-
-       There’s no messages on your phone. No one has checked in on you since 
-       yesterday and the group chat is weirdly silent. 
-
-       You may have lost all of your friends, but at least they’re alive! You 
-       didn’t just eat a bunch of innocent people! So you stand in your newly 
-       re-organized apartment and cling to that small victory. 
-
-       """+Fore.RED+"""You can’t help but feel a little lonely though…
-
-       
-                                       """+Fore.RED+"""Bad End?
-                                """
-
-    ending12_text: str = Fore.WHITE + """
-                                It was """+Fore.RED+ Style.BRIGHT+ """almost"""+Fore.WHITE+ Style.NORMAL+ """ perfect.
-        
-                     Maybe not""" + Style.BRIGHT + Fore.RED + """ perfect""" +Style.NORMAL+ Fore.WHITE+ """ but it would've been """ +Style.BRIGHT+ Fore.YELLOW+ """okay""" +Style.NORMAL+ Fore.WHITE+ """.
-        
-        You just couldn't pretend things were normal. You couldn't find a way to
-        maintain a middle ground or playful aloofness. You let slip one too
-        many things that raised eyebrows and now... \n""" +Fore.RED+ Style.BRIGHT+ """
-                                  You're here.""" +Fore.WHITE+ Style.NORMAL+ """
-        
-        The night comes and goes in a blur as it typically does for you when
-        you're forced to endure the full moon's deadly whims. You 
-        haven't looked at your messages to see how the party went. There's been
-        more pressing matters to attend to. Namely, the stench of death that
-        once again permeates your home and the dreadful mess you've made.
-        
-        It's not all of your friends but that's no consolidation. There is no
-        acceptable amount of corpses. Only a concealable amount.""" +Fore.RED+ Style.BRIGHT+"""
-        
-        You work to hide your crimes away like they were nothing more than a
-        dirty secret. And not for the first time you wished silver bullets
-        worked on monsters like you the way fairy tales promised they would.
-        
-                                    Bad End""" + Fore.WHITE + Style.NORMAL
-    
-    ending13_text: str = Fore.WHITE + """
-                       Well.... That could've gone """ +Fore.YELLOW+ Style.BRIGHT+ """better"""+Fore.WHITE+ Style.NORMAL+ """.                     
-
-    The night of Johnny's party came and went without any unexpected
-    interruptions. As usual, there was a considerable amount of dog hair to 
-    vacuum up. It's a little embarrassing actually, be glad no one will ever 
-    see what a filthy animal you are.
-    
-    Your phone is considerably quieter as you mill about your \'morning after\'
-    chores. There's some alerts but not as many as what's usually expected 
-    after one of Johnny's ragers.
-    
-    """ +Fore.YELLOW+ Style.BRIGHT+ """Perhaps you should've been kinder when turning down some of your friends.
-    
-                                    Bad End?""" +Fore.WHITE+ Style.NORMAL
-
-    sleep_func(2)
-    match victory:
-        case 11: #1.1 condition, flawless victory- all alive, all positive
-            print(ending1_text)
-
-        case 12: #1.2 condition, atleast one guy died
-            print(ending12_text)
-
-        case 13: #1.3 condition, atleast one person hates you but none died
-            print(ending13_text)
-
-        case 20: #2 conditions- all eaten
-            print(ending2_text)
-
-        case 30: #3 conditions- all negative
-            print(ending3_text)
-
-        case _: #error case
-            print("unknown ending...\n...\n..")
-            print("bugged code srry")
-
-    sleep_func(2)
-    print(Style.DIM + "Game end\n...\n...\n...\n\n\n\n")
-    sleep_func(2)
-    exit_fun(True)
-    
-    checkp_score.clear()
-    MainScore.clear()
-    answered_questions.clear()
-    global loaded_checkpoint
-    loaded_checkpoint = False
-
-def exit_fun(go_to_menuscreen=False) -> None:
-    """Ask user if they want to save their progress, then exits programme
-
-    Returns:
-        None: None
-    """
-    if len(checkp_score) != 0:
-        checkpoint_write = input(Fore.BLACK + "Do you want to save your progress? Type \"1\" for yes, anything else for no\n"+ Fore.WHITE +"-> ")
-        if "1" in checkpoint_write:
-            global loaded_checkpoint
-            if loaded_checkpoint == True:
-                with open("checkpoints.txt", "a") as fd: 
-                    for key, value in checkp_score.items():
-                        if len(value[0]) == 3:
-                            sc1, sc2, sc3 = value[0]
-                            q1, q2, q3 = value[1]
-                            fd.write(f"{key},{sc1},{sc2},{sc3},{q1},{q2},{q3}\n")
-                        elif len(value[0]) == 2:
-                            sc1, sc2 = value[0]
-                            q1, q2 = value[1]
-                            fd.write(f"{key},{sc1},{sc2},{q1},{q2}\n")
-                        elif len(value[0]) == 1:
-                            sc1, = value[0]
-                            q1, = value[1]
-                            fd.write(f"{key},{sc1},{q1}\n")
-                        else:
-                            print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
-                            exit()            
-            else:    
-                with open("checkpoints.txt", "w") as fd: #ugly, but afaik needed to decouple tuples of differing length
-                    for key, value in checkp_score.items():
-                        if len(value[0]) == 3:
-                            sc1, sc2, sc3 = value[0]
-                            q1, q2, q3 = value[1]
-                            fd.write(f"{key},{sc1},{sc2},{sc3},{q1},{q2},{q3}\n")
-                        elif len(value[0]) == 2:
-                            sc1, sc2 = value[0]
-                            q1, q2 = value[1]
-                            fd.write(f"{key},{sc1},{sc2},{q1},{q2}\n")
-                        elif len(value[0]) == 1:
-                            sc1, = value[0]
-                            q1, = value[1]
-                            fd.write(f"{key},{sc1},{q1}\n")
-                        else:
-                            print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
-                            exit()
-    if go_to_menuscreen == False:
-        print(Fore.WHITE + "Thank you for playing\n Exiting Program . . . " + Style.RESET_ALL)
-        exit()
-    
-
-
-if __name__ == '__main__':
-    # Write all functions in here that will be called when running the program
-
     #This is the meat of our game! We formatted our NPC conversations into dictionaries instead of relying on numerous else-if statements.
     #intended answer weights: 1 = coming to house (-), 2 = no change (-+), 3 = hate you (+)
     person1: dict[str, list[list[str, int]]] = {"Cameron: Hey {player_name}, it’s Cam again. Just leaving you a mess-\nwait a minute… Holy hell, you picked up!": #Question-Answer dictionary
@@ -1293,15 +669,636 @@ if __name__ == '__main__':
         ["3) Send pics of Johnny's house burning.", 3]]} 
     person3keys = list(person3.keys())
 
-    #change this to false when sending to prof
-    debugmode = False
+    try:
+        if friend_num == 1:
+            question = question + str(person1keys[answered_ques_friend])
+            answers = person1[question]
+        elif friend_num == 2:
+            question = question + str(person2keys[answered_ques_friend])
+            answers = person2[question]
+        elif friend_num == 3:
+            question = question + str(person3keys[answered_ques_friend])
+            answers = person3[question]          
+        else:
+            print(Fore.RED + "error" + Style.RESET_ALL)
+            print(checkp_score)
+            exit()
+    except IndexError:
+        print("This is index out of bounds error. Friend num = ", friend_num)
+        print(checkp_score)
 
 
+    return(question, answers)
+
+def VictoryConditions(scores: list[float]) -> int:
+    """Gets victory conditions for current friend score 
+
+    Args:
+        score (float): Current score for current character
+
+    Returns:
+        int: int describing the endgametype reached, returns 0 if no endgame was reached
+    """
+
+    #This function takes in a score value, and returns values based upon if the score meets certain criteria
+    #Returns Endgametype of type int
+    Endgametype: int = 0
+    ending_values = []
+    for value in scores:
+        if value > 0.75:
+            ending_values.append(0)
+        elif value < 0.25:
+            ending_values.append(2)
+        else:
+            ending_values.append(1)
+    if len(set(ending_values)) == 1:
+        idx = ending_values[0]
+        if idx == 2: #all eaten
+            Endgametype = 20
+        elif idx == 0: #all come to house
+            Endgametype = 30
+        else: #best ending, nobody gets hurt
+            Endgametype = 11
+    elif 2 in ending_values:
+        Endgametype = 12 #atleast one person dies
+    elif 1 in ending_values:
+        Endgametype = 13 #atleast one person hates you, but none died
+    else:
+        print(Fore.RED + "this is not supposed to happen... I blame the users" + Style.RESET_ALL)
+        exit()
+
+    #victory conditions are in the docstring for endinggame()
+    #scores larger than 100 are victory conditions
+    return Endgametype
+
+def sleep_func(n: int | float) -> None:
+    """checks if debug mode is enabled (true/false value) in main block. If yes removes all sleep functions.
+
+    Args:
+        n (int | float): int for how long to sleep
+    """
+    global debugmode
+    if debugmode == True: #this function is the goat, best addition I (jacob) added. this has saved me HOURS
+        return
+    else:
+        sleep(n)
+        return
+
+
+#game functions
+def WholeProgram() -> None:
+    """Endlessly repeats menuscreen
+
+    Returns:
+        None: none
+    """   
+
+    while True:
+        Menuscreen()
+
+def Menuscreen() -> None:
+    """Menu screen, this leads into the main game, sets your name, number of friends, loads game from checkpoint if selected, and can exit the program.
+
+    Returns:
+        None: none
+    """   
+    #Main menu
+    player_name: str = ""
+    nonamechecknum: int = 2
+    numofPeople: int = 3
+    startval: float = 0.50 #this changes the starting number in MainScore. This is for us to tinker with to adjust difficulty/game length
+    Menu_text: str = """
+                            
+                        Stay Home Moon
+                            
+                            
+                        Play
+                        Set Name
+                        Friends Count
+                        Load
+                        Exit
+
+    """
+    #ascii pattern made from https://www.aestheticsymbols.me/dot.html
+    print(Fore.MAGENTA + "            ┌── " + Fore.YELLOW + "⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──.·:*¨༺ " + Fore.YELLOW + "☾" + Fore.MAGENTA + " ༻¨*:·.── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──┐")
+    print(Menu_text)
+    print(Fore.MAGENTA + "            └── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──•,¸,.·'  '·.,¸,•── " + Fore.YELLOW + "⋆⋅☆⋅⋆" + Fore.MAGENTA + " ──┘")
+    while True:
+        try: #this is for input validation
+
+            menuinput: str = input(Fore.BLACK + "What do you want to do? Type \"Play\", \"Name\", \"Friends\", \"Load\", or \"Exit\"\n"+ Fore.WHITE +"-> ").upper()
+            inputcheck: list = ["PL", "NA", "FR", "LO", "EX", "DEBUG"] #checking substrings for higher chance of getting right thing
+            
+            if any(substring in menuinput for substring in inputcheck) == False:
+                raise ValueError
+            if "PL" in menuinput: #play
+                if len(player_name) == 0:
+                    if nonamechecknum == 0: #this is a funny easteregg
+                        print(Fore.CYAN + "Fine, name has been set to 'Billybob'. You win")
+                        player_name = "Billybob"
+                        sleep_func(2)
+                        return StartGame(player_name, startval, numofPeople)
+                    else:
+                        print("Please set a name first")
+                        nonamechecknum -= 1
+                else:
+                    return StartGame(player_name, startval, numofPeople)
+
+            elif "NA" in menuinput:
+                player_name = nameSet(player_name)
+            elif "FR" in menuinput:
+                numofPeople = friendsCnt(numofPeople)
+                print(Fore.CYAN + "Friends set to " +Fore.WHITE+ str(numofPeople))
+            elif "LO" in menuinput:
+                checkpoint = checkpoint_execute() #loads checkpoints from file
+                player_name, game_vals = checkpoint
+                if (not player_name or not game_vals): #I think this will work, it checks if the bool(value) equals false
+                    break
+                if type(game_vals[0]) is float: #checks if game_val[0] is not None
+                    MainScore.append(game_vals[0])
+                    answered_questions.append(game_vals[1])
+                else:
+                    for i in game_vals[0]:
+                        MainScore.append(i)
+                    for i in game_vals[1]:
+                        answered_questions.append(i)
+                global loaded_checkpoint
+                loaded_checkpoint = True
+                return MainGame(player_name) #starts straight into game, skips start_game function
+
+            elif "EX" in menuinput: #exits program
+                exit_fun()
+            elif "DEBUG" in menuinput: #hidden test that gets rid of all sleep statements in sleep_func(). Just makes it much faster to debug
+                print("Debug mode enabled")
+                global debugmode
+                debugmode = True
+                player_name = "debugname"
+                print("set name to 'debugname'")
+
+            else: #this is for wrong inputs not caught
+                print(Fore.RED + "how did you get here. bad !!@%$@#@#!!!$#@#@#@\n" + Style.RESET_ALL)
+                exit()
+        except ValueError:
+            print(Fore.RED + "Invalid input, please type one of the four options\n")    
+
+def StartGame(name: str, startval: float, numpeople: int) -> None:
+    """Prints start game text, assigns MainScore starting values, and asks user if they want to start the tutorial
+
+    Args:
+        name (str): User name
+        startval (float): starting value for all character's scores (0.5)
+        numpeople (int): number of friends chosen for the game
+    Raises:
+        ValueError: restricts user input to value in corlist
+    Returns:
+        None: none
+    """
+    
+    Intro_text1: str = Fore.WHITE + f"""
+    Turns out being a werewolf isn’t what fantasy novels chock it up to be, at 
+    least not a modern werewolf anyway. There’s no running through the woods 
+    and ‘unleashing your inner wolf’ or any of that nonsense depicted in books 
+    with scandalous oil paintings for covers. It’s still just like being any 
+    other person that has to make it day to day…. except with the ‘fun’ 
+    challenge of turning into a murderous beast once a month. You’ve had to 
+    learn first hand the issues that come with that ranging from copious 
+    amounts of shedding that your vacuum never seems to fully clean up, to the 
+    bloody messes that you need to discreetly clean up when you can’t keep 
+    yourself locked up during those pesky full moons. It really is a pain to 
+    have to change your name and abandon your entire life every time just one 
+    teensy little security measure just doesn’t hold up.\n"""
+
+    introtex2 = Fore.WHITE + """    It’s been a couple months since the last time you’ve had to jump ship, and 
+    this time you’re going by """ + Fore.CYAN + name + Fore.WHITE +  """.\n"""
+
+    introtex3 = Fore.WHITE + """    You’ve managed to settle in quite nicely. You’ve scored a great job and 
+    managed to land a spot in a semi-stable group of friends. You’ve finally 
+    found the best way to keep from going on a bloodthirsty rampage during the 
+    full moons. Thanks to your new iron clad security, courtesy of ‘Trademarked 
+    Hardware and Home Improvement’ store, there’s absolutely no way you’re 
+    busting through those locks! So now it’s just you, a movie that you 
+    probably won’t finish due to your impending transformation, and a supply 
+    of tranquilizer laced meat in the fridge all settled in for a completely 
+    uneventful evening."""
+    
+    introtex5:str = """
+
+                            """+Fore.RED+"""So why is your phone ringing?"""
+    
+    introtext6: str = Fore.WHITE+""" 
+
+    Looking at the number on display, you see Cameron’s name popping up. Before
+    you can think to answer it all rushes in: the party and the plans you made 
+    with each of your friends. That was tonight! You scheduled that all on the 
+    night of the full moon like some giant idiot!
+
+    You’re gonna have to cancel all of your plans and you just know your 
+    friends aren’t going to make that easy. The alternative however is 
+    potentially eating them at worst, possibly only mauling them at best. It’s
+    what you’ve gotta do."""
+    
+    
+    print(Intro_text1) #these all print stuff with sleep functions inbetween
+    sleep_func(4)
+    print(introtex2)
+    sleep_func(3)
+    print(introtex3)
+    sleep_func(2)
+    print(introtex5)
+    sleep_func(4)
+    print(introtext6)
+    sleep_func(4)
+    if len(MainScore) == 0: #assigns startval for each friend. wont work if mainscore has somthing in it - possible error if mainscore isnt cleared beforehand
+        for i in range(numpeople):
+            MainScore.append(startval)
+            answered_questions.append(0)
+
+
+    while True: #asks for input to do tutorial or not
+        try: #this is for input validation
+            tutorialY: str = input(Fore.BLACK + """\n                                   1) View Tutorial?
+                                   2) Answer the call\n"""+Fore.WHITE+"-> ")
+            corlist: list = ["1", "2"]
+            if tutorialY not in corlist:
+                raise ValueError
+            if "1" in tutorialY:
+                Tutorial()
+            break
+        except ValueError:
+            print(Fore.RED + "Invalid input, please type exactly \"1\" or \"2\"")
+    print(Style.DIM + "\nPicking up the call in 3...\n2...\n1...")
+    sleep_func(1)
+    MainGame(name) #this goes into the main game
+        #block was found in stackoverflow: https://stackoverflow.com/questions/41832613/python-input-validation-how-to-limit-user-input-to-a-specific-range-of-integers
+
+def Tutorial() -> None:
+    """Prints tutorial text (potential to add stuff later)
+
+    Returns:
+        None: none
+    """
+    Tut_text = """
+    Welcome to Stay Home Moon! You’ve found yourself in a bit of a spot,\n 
+    haven’t you? The goal of the game is pretty simple: Don’t Eat Your Friends.
+
+    You will have to navigate a series of phone calls with your friends. 
+    You’ll be presented with a series of responses that will shape how your 
+    friend reacts to the conversation. You will select your response by typing 
+    the correlating number into the command line. There are three things to 
+    remember when selecting a response:
+
+    -Your words have weight.
+    -Some of your options will have a greater impact than others.
+    -The ultimate goal is to not eat your friends, but try not to completely 
+     ruin your relationships.
+
+    Your goal is to keep your friendship points between 0.25 and 0.75. 
+    If you manage this by the last question, and the value is in that interval 
+                                   you win!
+
+                                   Be Warned -
+        if it ever falls to 0, or makes it to 1, the game will end immediatly.
+
+    You should really pick up that phone now, Cameron’s waiting, good luck!\n"""
+    print(Fore.WHITE + Tut_text)
+    sleep_func(2)
+
+def MainGame(name: str) -> None:
+    """Main block of code for game. Runs the game until a victory condition is reached
+
+    Args:
+        name (str): user name
+        num_of_friends (int): selected number of characters to play against
+
+    Raises:
+        ValueError: restricts user input to be either a number 1-3, or include the str 'ex' to exit the game
+    
+    Returns:
+        None: none
+    """
+    #The guts of our game! Takes in the Player name, and then calls the helper functions to complete the processes in the game!
+    VictoryCond: int = 0
+    player_name: str = name
+    friend_number: int = 0
+    num_of_friends = len(MainScore)
+    numquestions: int = 30 * num_of_friends
+    questionnumber: int = sum(answered_questions)
+    checkpoint_loaded_ques_num: int = 0
+
+    while questionnumber < numquestions: #main loop for the game
+
+        anslenlist: list = []
+        anslenstr: str = ""
+        if (checkpoint_loaded_ques_num % 12 == 0) and (checkpoint_loaded_ques_num != 0): #checking the number of the question to spit out checkpoint
+            checkpoint_assign(checkp_score, MainScore, answered_questions, player_name) #assigns checkpoints to current position        
+        if (questionnumber % 6 == 0) or ((checkpoint_loaded_ques_num == 0) and (questionnumber != 0)): #switches who you call every 6 questions
+            friend_number = character_selection(num_of_friends, friend_number, MainScore)
+        curquestion, curanswers = NextQuestion(friend_number, answered_questions) #gets next question/answers
+        curquestion = curquestion.format(player_name = player_name) #formats the player name into the text
+        if numquestions - questionnumber > 1: #checks if its the final quesiton
+            print(Fore.MAGENTA + "──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──.·:*¨༺" + Fore.YELLOW + " ☾ " + Fore.MAGENTA + "༻¨*:·.──" + Fore.YELLOW + " ⋆⋅☆⋅⋆ " + Fore.MAGENTA + "──" + Fore.WHITE +Style.DIM + f"\n\n{numquestions - questionnumber} questions remain\n")
+        else:
+            print(Fore.YELLOW+ Style.BRIGHT + f"Final Question")
+        sleep_func(1.5)
+
+        #block below is for formating border around the question
+        lonegest_newline_length = max(curquestion.split("\n"), key=len)
+        dash_str = ""
+        for idx in range(0,len(lonegest_newline_length)-4,2):
+            dash_str = dash_str + "- "
+        dash_str = dash_str + "-"
+        print(Fore.RED+ "┌──" + Fore.BLACK + dash_str + Fore.RED+"──┐")
+        for i in curquestion.split("\n"):
+            print(Fore.BLUE +"  "+ i)
+        print(Fore.RED+ "└──" + Fore.BLACK + dash_str + Fore.RED+"──┘\n")
+        sleep_func(2)
+        
+        for i in range(len(curanswers)): #prints answers out
+            print(Fore.WHITE + curanswers[i][0])
+            anslenlist.append(i+1)
+            sleep_func(0.5)
+        for i in range(len(anslenlist)):
+            anslenstr = anslenstr + str(anslenlist[i]) + ", "
+        anslenstr = anslenstr[:-3] + f"or {anslenlist[-1]}"
+        while True: #block for restricting user input to an answer
+            try:
+                if questionnumber < 4:
+                    choice = input(Fore.BLACK + f"Pick Answers {anslenstr} by typing that number (ex to exit if stuck)\n"+Fore.WHITE+"-> ")
+                else:
+                    choice = input(Fore.BLACK + f"Pick Answers {anslenstr}\n"+Fore.WHITE+"-> ")
+                if choice.isdigit() == True:
+                    choice = int(choice)
+                    if choice not in anslenlist:
+                        raise ValueError
+                    break
+                else:
+                    if "ex" in choice.lower():
+                        exit_fun()
+                    raise ValueError
+            except ValueError:
+                print(Fore.RED + "Invalid input, please type exactly one of the numbers shown")
+            print()
+        CurAnswScore = ScoreAnswer(curanswers[choice-1][1]) #scores answer
+        answered_questions[friend_number-1] += 1
+        MainScore[friend_number-1] = round(MainScore[friend_number-1] + CurAnswScore, 4) #this is to stop floating point weirdness
+        friend_name_list = ["Cameron", "Dawn", "Sock"]
+        color_val = str(MainScore[friend_number-1])
+        badendtxt = ""
+        match floor(float(color_val)*4): #this is for neat color shenanigans
+            case -1:
+                color_val = Fore.RED + color_val    
+                badendtxt = badendtxt + "Somethings up with you, imma "+Fore.RED+"come over"+Fore.WHITE+" right away..\n"
+            case 4:
+                color_val = Fore.RED + color_val    
+                badendtxt = badendtxt + "You suck today, you know that? Goodbye, "+Fore.RED+"I dont think I want to speak to you again\n"                
+            case 0 | 3:
+                color_val = Fore.YELLOW + color_val
+            case _:
+                color_val = Fore.GREEN + color_val
+        print (Style.DIM + f"\n{friend_name_list[friend_number-1]} is at {color_val}" + Style.DIM + " friendship points")
+        print(badendtxt,end="")
+        sleep_func(1)
+
+        if (MainScore[friend_number-1] <= 0.0) or (MainScore[friend_number-1] >= 1.0): 
+            answered_questions[friend_number - 1] = 30
+        elif MainScore[friend_number-1] <= 0.25:
+            print("Warning! Your friend is growing concerned!")
+        elif MainScore[friend_number-1] >= 0.75:
+            print("Warning! Hatred is seeping through your friend!")
+        sleep_func(2)
+
+        if (sum(answered_questions) % 6 == 0) and num_of_friends != 1:
+            char_list = ['Cameron', 'Dawn', 'Sock']
+            print(f"\nCall ended with {char_list[friend_number-1]}")        
+            sleep_func(1)
+        print("\n\n")
+        questionnumber: int = sum(answered_questions)
+        checkpoint_loaded_ques_num += 1
+                 
+    VictoryCond = VictoryConditions(MainScore)
+    EndingGame(VictoryCond, player_name)
+
+def EndingGame(victory: int, player_name: str) -> None:
+    """Prints ending game text based on victory condition
+
+    Args:
+        victory (int): integer correspoding to a specific victory condition
+        player_name (str): user name
+
+    Returns:
+        None: none
+    """   
+    #Takes in the victory condition of type int, and the player name (str)
+    #Prints the endings depending on the victory condition
+    """
+    victory condition 0: not possible, 0 means game is running
+
+    victory condition 10: out of questions. This is good, and can lead into winning flawlessly
+        victory condition 1.1: Flawless victory, all friends dont come and dont hate you
+        victory condition 1.2: Atleast 1 friend died
+        victory condition 1.3: All survived, but at least 1 hates you 
+    victory condition 2: All eaten - all friends get eaten
+    victory condition 3: All hate you - all friends hate you
+    """
+
+    
+    ending1_text: str = Fore.WHITE + """
+                The full moon rises but the evening remains calm. 
+
+    Your friends are blissfully unaware of the transformation occurring in your
+    solitary apartment. The group chat is filling with messages. Pictures and 
+    videos of varying clarity or what’s happening at the party. It seems this 
+    is how they’re trying to include you, and maybe convince you to come to the
+    next one.
+
+    Cameron’s sending pictures of everyone having a good time. You can see Dawn
+    standing by while Sock tries to talk to Johnny’s randos. From the still 
+    shots it looks like their actually doing pretty well, even if they look 
+    like they want to throw up. 
+
+    You’re gonna have a lot of catching up to do with them tomorrow.
+
+                                """+Fore.GREEN+"""You Win!
+                                """
+    
+    ending2_text: str = f"""
+                Your friends couldn’t be convinced to """+Fore.RED+"""stay away. 
+
+                            """+Fore.BLACK+"""Do you know what that means? 
+
+             """+Fore.RED+"""That means they’re coming to your house """ +Fore.CYAN+ player_name+Fore.WHITE + """. 
+
+                    You """+Fore.BLACK+"""failed"""+Fore.WHITE+""" them in the worst possible way.
+
+    The night of the full moon and subsequently Johnny’s party arrives. 
+    Your transformation was interrupted by a knock on the door. It opens and
+    concerned gazes of the people you care about witness you hunched over and 
+    writhing. They hear your bones snap as they reshape and you are molded into
+    a monster.
+
+    """+Fore.RED+"""Maybe it’s for the best you don’t exactly remember what happened next. 
+    You’ll never forget the sight of the remains you left behind though.
+
+    """+Fore.WHITE+"""You couldn’t stomach hiding them away like so many other unfortunate 
+    bystanders before. You run, leaving this version of your life behind.
+
+                                    """+Fore.RED+"""Bad End
+                                    """
+    
+    ending3_text: str = Fore.WHITE + """
+       The night of the full moon comes and goes without incident.
+
+               
+       The sun rises to a slightly disheveled apartment, but a quick tidy and 
+       nothing out of the ordinary appears to have occurred.
+
+       There’s no messages on your phone. No one has checked in on you since 
+       yesterday and the group chat is weirdly silent. 
+
+       You may have lost all of your friends, but at least they’re alive! You 
+       didn’t just eat a bunch of innocent people! So you stand in your newly 
+       re-organized apartment and cling to that small victory. 
+
+       """+Fore.RED+"""You can’t help but feel a little lonely though…
+
+       
+                                       """+Fore.RED+"""Bad End?
+                                """
+
+    ending12_text: str = Fore.WHITE + """
+                                It was """+Fore.RED+ Style.BRIGHT+ """almost"""+Fore.WHITE+ Style.NORMAL+ """ perfect.
+        
+                     Maybe not""" + Style.BRIGHT + Fore.RED + """ perfect""" +Style.NORMAL+ Fore.WHITE+ """ but it would've been """ +Style.BRIGHT+ Fore.YELLOW+ """okay""" +Style.NORMAL+ Fore.WHITE+ """.
+        
+        You just couldn't pretend things were normal. You couldn't find a way to
+        maintain a middle ground or playful aloofness. You let slip one too
+        many things that raised eyebrows and now... \n""" +Fore.RED+ Style.BRIGHT+ """
+                                  You're here.""" +Fore.WHITE+ Style.NORMAL+ """
+        
+        The night comes and goes in a blur as it typically does for you when
+        you're forced to endure the full moon's deadly whims. You 
+        haven't looked at your messages to see how the party went. There's been
+        more pressing matters to attend to. Namely, the stench of death that
+        once again permeates your home and the dreadful mess you've made.
+        
+        It's not all of your friends but that's no consolidation. There is no
+        acceptable amount of corpses. Only a concealable amount.""" +Fore.RED+ Style.BRIGHT+"""
+        
+        You work to hide your crimes away like they were nothing more than a
+        dirty secret. And not for the first time you wished silver bullets
+        worked on monsters like you the way fairy tales promised they would.
+        
+                                    Bad End""" + Fore.WHITE + Style.NORMAL
+    
+    ending13_text: str = Fore.WHITE + """
+                       Well.... That could've gone """ +Fore.YELLOW+ Style.BRIGHT+ """better"""+Fore.WHITE+ Style.NORMAL+ """.                     
+
+    The night of Johnny's party came and went without any unexpected
+    interruptions. As usual, there was a considerable amount of dog hair to 
+    vacuum up. It's a little embarrassing actually, be glad no one will ever 
+    see what a filthy animal you are.
+    
+    Your phone is considerably quieter as you mill about your \'morning after\'
+    chores. There's some alerts but not as many as what's usually expected 
+    after one of Johnny's ragers.
+    
+    """ +Fore.YELLOW+ Style.BRIGHT+ """Perhaps you should've been kinder when turning down some of your friends.
+    
+                                    Bad End?""" +Fore.WHITE+ Style.NORMAL
+
+    sleep_func(2)
+    match victory:
+        case 11: #1.1 condition, flawless victory- all alive, all positive
+            print(ending1_text)
+
+        case 12: #1.2 condition, atleast one guy died
+            print(ending12_text)
+
+        case 13: #1.3 condition, atleast one person hates you but none died
+            print(ending13_text)
+
+        case 20: #2 conditions- all eaten
+            print(ending2_text)
+
+        case 30: #3 conditions- all negative
+            print(ending3_text)
+
+        case _: #error case
+            print("unknown ending...\n...\n..")
+            print("bugged code srry")
+
+    sleep_func(2)
+    print(Style.DIM + "Game end\n...\n...\n...\n\n\n\n")
+    sleep_func(2)
+    exit_fun(True)
+    
+    checkp_score.clear()
+    MainScore.clear()
+    answered_questions.clear()
+    global loaded_checkpoint
+    loaded_checkpoint = False
+
+def exit_fun(go_to_menuscreen=False) -> None:
+    """Ask user if they want to save their progress, then exits programme
+
+    Returns:
+        None: None
+    """
+    if len(checkp_score) != 0:
+        checkpoint_write = input(Fore.BLACK + "Do you want to save your progress? Type \"1\" for yes, anything else for no\n"+ Fore.WHITE +"-> ")
+        if "1" in checkpoint_write:
+            global loaded_checkpoint
+            if loaded_checkpoint == True:
+                with open("checkpoints.txt", "a") as fd: #this will override all previous checkpoints with the same name
+                    for key, value in checkp_score.items():
+                        if len(value[0]) == 3:
+                            sc1, sc2, sc3 = value[0]
+                            q1, q2, q3 = value[1]
+                            fd.write(f"{key},{sc1},{sc2},{sc3},{q1},{q2},{q3}\n")
+                        elif len(value[0]) == 2:
+                            sc1, sc2 = value[0]
+                            q1, q2 = value[1]
+                            fd.write(f"{key},{sc1},{sc2},{q1},{q2}\n")
+                        elif len(value[0]) == 1:
+                            sc1, = value[0]
+                            q1, = value[1]
+                            fd.write(f"{key},{sc1},{q1}\n")
+                        else:
+                            print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
+                            exit()            
+            else:    
+                with open("checkpoints.txt", "w") as fd: #ugly, but afaik needed to decouple tuples of differing length
+                    for key, value in checkp_score.items():
+                        if len(value[0]) == 3:
+                            sc1, sc2, sc3 = value[0]
+                            q1, q2, q3 = value[1]
+                            fd.write(f"{key},{sc1},{sc2},{sc3},{q1},{q2},{q3}\n")
+                        elif len(value[0]) == 2:
+                            sc1, sc2 = value[0]
+                            q1, q2 = value[1]
+                            fd.write(f"{key},{sc1},{sc2},{q1},{q2}\n")
+                        elif len(value[0]) == 1:
+                            sc1, = value[0]
+                            q1, = value[1]
+                            fd.write(f"{key},{sc1},{q1}\n")
+                        else:
+                            print(Fore.RED + "Error, bad code alert!!" + Style.RESET_ALL)
+                            exit()
+    if go_to_menuscreen == False:
+        print(Fore.WHITE + "Thank you for playing\n Exiting Program . . . " + Style.RESET_ALL)
+        exit()
+    
+
+
+if __name__ == '__main__':
     checkp_score: dict[str, list[tuple[float,...], tuple[int,...]]] = {} #scores for people, index of questions answered
     MainScore = [] #idx+1 equals the number of friends you are conversing with, currently only one friend is available. will be in form [pers1, pers2,...,persX]   
     answered_questions: list[int] = []
+    
+    debugmode = False
     loaded_checkpoint = False
-    if system() == 'Windows': #colorama thing
+
+    if system() == 'Windows': #colorama things
         just_fix_windows_console()
     init(autoreset=True)
 
