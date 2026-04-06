@@ -1292,7 +1292,7 @@ def exit_fun(go_to_menuscreen=False) -> None:
 
 if __name__ == '__main__':
     checkp_score: dict[str, list[tuple[float,...], tuple[int,...]]] = {} #scores for people, index of questions answered
-    MainScore = [] #idx+1 equals the number of friends you are conversing with, currently only one friend is available. will be in form [pers1, pers2,...,persX]   
+    MainScore = [] #in form [pers1, pers2,...,persX] - formatted when you start the game   
     answered_questions: list[int] = []
     
     debugmode = False
