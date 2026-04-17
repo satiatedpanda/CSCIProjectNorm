@@ -738,7 +738,7 @@ def sleep_func(n: int | float) -> None:
         n (int | float): int for how long to sleep
     """
     global debugmode
-    if debugmode == True: #this function is the goat, best addition I (jacob) added. this has saved me HOURS
+    if debugmode == True: #this function is the goat, best addition I added. this has saved me HOURS
         return
     else:
         sleep(n)
