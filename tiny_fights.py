@@ -5,20 +5,6 @@ from typing import NoReturn, TextIO
 """
 
 
-class WarriorOptions:
-    """
-        Warrior type, good and bad
-    """
-    def __init__(self) -> None:
-        valid_titles: list[str] =[
-        "wizard", "waffle house employee", "toddler", "rogue" 
-        ]
-
-        self.title: str = ""
-        self.weapon: str = "" #calls another class
-        self.health: int = 0
-        self.magic: int = 0
-        self.abilities: str = "" #calls to ability class
 
 class StatModifiers: #includes weapons (?)
     """Updates and returns stat modifiers based on input
@@ -32,11 +18,32 @@ class Abilities:
     def __init__(self) -> None:
         pass
 
+class Player(StatModifiers, Abilities):
+    def __init__(self):
+        self.title: str = ""
+        self.weapon: str = ""
+        self.health: int = 0
+        self.magic: int = 0
+        self.abilities: str = ""
+
+class WarriorOptions(Player):
+    """
+        Warrior type, good and bad
+    """
+    def __init__(self, Player) -> None:
+        super().__init__()
+        valid_titles: list[str] =[
+        "wizard", "waffle house employee", "toddler", "rogue" 
+        ]
+
+
+
 class MainGame: #might delete, but
     """Main game object
     """
     def __init__(self) -> None:
-        pass
+        person = Player
+        self.menu_screen()
 
     def menu_screen(self) -> None:
         """
@@ -51,14 +58,14 @@ class MainGame: #might delete, but
                 if any((substring in menuinput for substring in inputcheck)) is False:
                     raise ValueError
                 if "PL" in menuinput: #play
-                    character_select()
+                    self.character_select()
                     break
                 elif "EX" in menuinput: #exits program
                     leave_y = input("Are you really choosing the option of cowardice? Type \"Y\" if you are paralyzed by fear, or proceed with any other input\n-> ")
                     if leave_y == "Y":
                         print("The art of violent confrontation is not for the meek.")
                         print(".\n.\n.\nExiting Arena.")
-                        exit()
+                        self.exit_game()
                 else: #this is for wrong inputs not caught
                     print("You weren't supposed to see this.\n")
                     raise KeyError
@@ -68,7 +75,7 @@ class MainGame: #might delete, but
                 self.exit_game()
         return None
 
-    def character_select() -> None:
+    def character_select() -> WarriorOptions:
         """
             This function prints the character selection. 
         """
@@ -77,7 +84,6 @@ class MainGame: #might delete, but
         #validation stuff
         #confirmation stuff
         print("LET'S GET READY TO RUMBLE!!!!!!")
-
 
     def start_game(self) -> None:
         pass
