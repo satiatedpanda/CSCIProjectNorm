@@ -1,6 +1,10 @@
+from typing import NoReturn, TextIO
+
 """
     doc comment for things
 """
+
+
 class WarriorOptions:
     """
         Warrior type, good and bad
@@ -10,12 +14,47 @@ class WarriorOptions:
         "wizard", "waffle house employee", "toddler", "rogue" 
         ]
 
-        title: str = ""
-        weapon: str = "" #calls another class
-        health: int = 0
-        magic: int = 0
-        abilities: str = "" #calls to ability class
+        self.title: str = ""
+        self.weapon: str = "" #calls another class
+        self.health: int = 0
+        self.magic: int = 0
+        self.abilities: str = "" #calls to ability class
 
+class StatModifiers: #includes weapons (?)
+    """Updates and returns stat modifiers based on input
+    """
+    def __init__(self) -> None:
+        pass
+
+class Abilities:
+    """Class of all abilites in the game
+    """
+    def __init__(self) -> None:
+        pass
+
+
+
+class MainGame: #might delete, but
+    """Main game object
+    """
+    def __init__(self) -> None:
+        pass
+
+    def menu_screen(self) -> None:
+        pass
+
+    def start_game(self) -> None:
+        pass
+    
+    def game(self) -> None:
+        pass
+
+    def exit_game(self) -> NoReturn: #DO NOT USE RANDOM EXIT STATEMENTS, call to this function whenever you exit. 
+        exit()
+
+
+
+#move these to inside a class
 def character_select() -> None:
     """
         This function prints the character selection. 
@@ -55,6 +94,9 @@ def menu_screen() -> None:
         except KeyError:
             exit()
     return None
+
+
+
 
 if __name__ == '__main__':
     menu_screen()
