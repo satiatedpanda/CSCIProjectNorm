@@ -71,17 +71,6 @@ class Weapon:
             self.accuracy = 100
             self.crit_chance = 20
 
-    def start_game(self) -> None:
-        pass
-    
-    def game(self) -> None:
-        pass
-
-    def exit_game(self, noexit=False) -> NoReturn: #DO NOT USE RANDOM EXIT STATEMENTS, call to this function whenever you exit. 
-        if noexit == False:
-            exit()
-        print("restarting game...\n")
-
 class Person:
     def __init__(self, *, title="", health=0, magic=[]):
         self.health = health
@@ -302,6 +291,17 @@ class MainGame:
             else: 
                 print("Invalid Input: Please Try Again")
         
+
+    def start_game(self) -> None:
+        pass
+    
+    def game(self) -> None:
+        pass
+
+    def exit_game(self, noexit=False) -> NoReturn: #DO NOT USE RANDOM EXIT STATEMENTS, call to this function whenever you exit. 
+        if noexit == False:
+            exit()
+        print("restarting game...\n")
 
 
 
