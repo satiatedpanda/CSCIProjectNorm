@@ -1,39 +1,37 @@
 from typing import NoReturn
-from random import randint
+from random import choice, randint
 
 """
     doc comment for things
 """
 
+class Status:
+    def __init__(self, name: str, duration: int, chance_to_remove: float):
+        self.status_type = name
+        self.duration = duration
+        self.chance = chance_to_remove
 
-
-class StatModifiers:
-    """Updates and returns stat modifiers based on input
-    """
-    def __init__(self) -> None:
-        pass
+    def __repr__(self):
+        return str(self)
+    
+    def __str__(self):
+        return f"Status Type: {self.status_type}, Duration: {self.duration}, Chance To Remove: {self.chance}"
 
 class Abilities:
     """Class of all abilites in the game - in form
     """
     def __init__(self) -> None:
+        self.item = {}
+        self.magic = {}
+
+    def assign_magic(self) -> dict[str, int]:
         pass
 
-    def assign_magic(self):
+    def assign_items(self) -> dict[str, int]:
         pass
 
-    def assign_items(self):
+    def items(self):
         pass
-
-class Items:
-    def __init__(self):
-        pass
-
-class Magic:
-    def __init__(self):
-        pass
-
-
 
 class Weapon: 
     def __init__(self): 
@@ -42,7 +40,12 @@ class Weapon:
         self.accuracy = 0 
         self.crit_chance = 0
         
-    def assign(self, weapon_type):
+    def assign(self, weapon_type: str) -> None:
+        """assigns correct weapon values to weapon object
+
+        Args:
+            weapon_type (str): Weapon chosen
+        """
         match weapon_type:
             case "Sword":
                 self.weapon_type = "Sword"
@@ -91,37 +94,237 @@ class Weapon:
     
     def __repr__(self):
         return str(self)
+    
     def __str__(self):
         return f"Weapon Type: {self.weapon_type}, Dmg: {self.dmg}, Accuracy: {self.accuracy}, Crit Chance: {self.crit_chance}"
 
 class Person:
-    def __init__(self, *, title="", health=0, abilities = Abilities()):
-        self.health = health
+    def __init__(self, *, title="", health=0, defense=0, magic_proficiency=0):
         self.title = title
-
-    def assign_items(self):
-        if self.title != "":
-            return "error"
-        
-    def assign_magic(self):
-        pass
+        self.max_health = health
+        self.health = health
+        self.defense = defense #reduces damage taken
+        self.magic_proficiency = magic_proficiency #adds to chance of magic working
+        self.status: list[Status] = []
 
     def apply_status_effects(self):
-        pass
+        if len(self.status) > 0:
+            for value in self.status:
+                match value.status_type:
+                    case "Poison":
+                        self.health -= int(self.max_health * 0.05)
+                    case "Paralysis":
+                        self.paralyzed = True
+                    case "Protect":
+                        self.defense += 25
+                    case "Burn":
+                        self.health -= 10
+                    case "Stop":
+                        self.stopped = True
+                    case _: #catchall
+                        print("error, invalid status name")
+                value.duration -= 1
+
+    def remove_status_effects(self):
+        if len(self.status)>0:
+            for value in self.status[:]:
+                if value.duration == 0:
+                    self.status.remove(value)
+                else:
+                    remove_val = randint(0,100)
+                    if remove_val <= value.chance:
+                        self.status.remove(value)
+
+    def get_attributes(self) -> dict[str, object]:
+        #found at: https://stackoverflow.com/questions/9058305/getting-attributes-of-a-class
+        for attribute, value in self.__dict__.items():
+            print(attribute + "=" + value)
+        return self.__dict__
 
 class Player(Person):
-    def __init__(self, title: str, health: int,*, weapon = Weapon(), abilities = Abilities()):
-        super().__init__(title=title, health=health)
+    def __init__(self, title: str, weapon: Weapon):
+        super().__init__(title=title)
         self.weapon: Weapon = weapon
 
 class Enemy(Person):
     def __init__(self):
         super().__init__()
+        self.weapon = Weapon()
+        self.magic = {}
+        self.ai_type = ""
+        self.monster_type = ""
 
-        self.title
-        self.health
-        self.weapon
-        self.magic
+    def randomEnemy(self):
+        enemy_list = ["Orc", "Wrym", "Hobgoblin", "Troll", "Wolf", "Ogre", "Werewolf", "Shark", "Ghost", "Lich", "Death Eye", "Hydra", "Elemental"]
+        rand_enemy = choice(enemy_list)
+        match rand_enemy:
+            case "Orc":
+                self.title = "Orc"
+                self.monster_type = "Basic"                
+                self.health = 150
+                self.weapon = Weapon.assign("Sword")
+                self.ai_type = "Agressive Weapon"
+            case "Wrym":
+                self.title = "Wrym"
+                self.monster_type = "Flying"                    
+                self.health = 450
+                self.weapon.weapon_type = "Claws"
+                self.weapon.dmg = 60                
+                self.weapon.crit_chance = 12
+                self.weapon.accuracy = 95
+                self.ai_type = "Cautious Mixed"
+            case "Hobgoblin":
+                self.title = "Hobgoblin"
+                self.monster_type = "Basic"                    
+                self.health = 100
+                self.weapon = Weapon.assign("Spear")
+                self.ai_type = "Agressive Mixed"
+            case "Troll":
+                self.title = "Troll"
+                self.monster_type = "Basic"                    
+                self.health = 300
+                self.weapon.weapon_type = "Club"
+                self.weapon.dmg = 80                
+                self.weapon.crit_chance = 25
+                self.weapon.accuracy = 70
+                self.ai_type = "Cautious Weapon"
+            case "Wolf":
+                self.title = "Wolf"
+                self.monster_type = "Basic"                    
+                self.health = 200
+                self.weapon.weapon_type = "Claws"
+                self.weapon.dmg = 40                
+                self.weapon.crit_chance = 30
+                self.weapon.accuracy = 95
+                self.ai_type = "Agressive Mixed"
+            case "Ogre":
+                self.title = "Ogre"
+                self.monster_type = "Basic"                    
+                self.health = 500
+                self.weapon = Weapon.assign("Fists")
+                self.ai_type = "Agressive Weapon"
+            case "Werewolf":
+                self.title = "Werewolf"
+                self.monster_type = "Basic"                    
+                self.health = 200     
+                self.weapon.weapon_type = "Claws"
+                self.weapon.dmg = 50                
+                self.weapon.crit_chance = 25
+                self.weapon.accuracy = 85
+                self.ai_type = "Agressive Mixed"
+            case "Shark":
+                self.title = "Shark"
+                self.monster_type = "Sea"                    
+                self.health = 300
+                self.weapon.weapon_type = "Fins"
+                self.weapon.dmg = 40                
+                self.weapon.crit_chance = 60
+                self.weapon.accuracy = 35                
+                self.ai_type = "Agressive Magic"
+            case "Ghost":
+                self.title = "Ghost"
+                self.monster_type = "Intangible"                    
+                self.health = 100
+                self.weapon.weapon_type = "Haunting"
+                self.weapon.dmg = 50                
+                self.weapon.crit_chance = 30
+                self.weapon.accuracy = 50      
+                self.ai_type = "Cautious Magic"
+            case "Lich":
+                self.title = "Lich"
+                self.monster_type = "Intangible"                
+                self.health = 250
+                self.weapon.weapon_type = "Staff"
+                self.weapon.dmg = 90                
+                self.weapon.crit_chance = 40
+                self.weapon.accuracy = 70    
+                self.ai_type = "Agressive Magic"
+            case "Death Eye":
+                self.title = "Death Eye"
+                self.monster_type = "Intangible"                
+                self.health = 100
+                self.weapon.weapon_type = "Haunting"
+                self.weapon.dmg = 15               
+                self.weapon.crit_chance = 90
+                self.weapon.accuracy = 80     
+                self.ai_type = "Cautious Magic"
+            case "Hydra":
+                self.title = "Hydra"
+                self.monster_type = "Flying"                
+                self.health = 100
+                self.weapon.weapon_type = "Stomp"
+                self.weapon.dmg = 15               
+                self.weapon.crit_chance = 90
+                self.weapon.accuracy = 80   
+                self.ai_type = "Agressive Mixed"
+            case "Elemental":
+                self.title = "Elemental"
+                self.monster_type = "Flying"                
+                self.health = 100
+                self.weapon.weapon_type = "Spirit Swipe"
+                self.weapon.dmg = 15               
+                self.weapon.crit_chance = 90
+                self.weapon.accuracy = 80   
+                self.ai_type = "Cautious Mixed"
+
+    def ai_action(self):
+        pass
+
+class Magic:       
+    """Class of functions for all magic spells
+    """
+    #defensive
+    def Cure(self, person: Person) -> bool:
+        #removes bad status effects
+        success_val = randint(0,100)
+        if success_val <= (person.magic_proficiency + 50):
+            protect_val = ""  
+            for i in range(len(person.status)):
+                if person.status[i].status_type == "Protect":
+                    protect_val = person.status[i]
+            person.status.clear()
+            if protect_val != "":
+                person.status.append(protect_val)
+            return True
+        else:
+            return False
+
+    def Heal(self, person: Person) -> bool:
+        #heals user by 20% of max health. 100% chance of success
+        person.health += int(person.max_health * 0.2)
+
+    def Protect(self, person: Person) -> bool:
+        #raises defense
+        person.defense += 20
+
+    #offensive
+    def Fireball(self, person: Person) -> bool:
+        #fireball. small chance to inflict burn
+        pass
+    
+    def Lightning(self, person: Person) -> bool:
+        #lightning. chance to inflict paralysis
+        pass
+
+    def Nuke(self, person: Person) -> bool:
+        #high damage, hits caster aswell. Low number of uses
+        pass
+
+    #offensive status effects
+    def Poison(self, person: Person) -> bool:
+        #posion. high chance to inflict poison
+        pass
+
+    def Instant_Death(self, person: Person) -> bool:
+        #chance to make an opponent die instantly. very low chance
+        pass
+
+    def Stop(self, person: Person) -> bool:
+        #chance to make opponent lose a turn
+        pass
+
+
+
 
 
 class MainGame:
@@ -301,11 +504,27 @@ class MainGame:
 
     def start_game(self) -> None:
         #initialize everything with enemy and player here, with defined values
-        pass
+        player = Player(self.character, self.weapon)
+        enemy = Enemy()
     
     def game(self) -> None:
         #main game loop
-        pass
+        while True:
+            pass
+            #print user options
+            #get user selection
+            #edit avaliable options for next round based upon selection
+            #get turn order
+            #1st attack
+            #effects -> check for winner
+            #2nd attack
+            #effects -> check for winner
+        
+        
+        self.ending()
+
+    def ending(self):
+        self.exit_game(noexit=True)
 
 
     def exit_game(self, noexit=False) -> NoReturn: #DO NOT USE RANDOM EXIT STATEMENTS, call to this function whenever you exit. 
