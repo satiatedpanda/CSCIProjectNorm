@@ -90,6 +90,7 @@ class Weapon:
                 self.accuracy = 100
                 self.crit_chance = 20
     
+
     def __repr__(self):
         return str(self)
     
@@ -97,23 +98,24 @@ class Weapon:
         return f"Weapon Type: {self.weapon_type}, Dmg: {self.dmg}, Accuracy: {self.accuracy}, Crit Chance: {self.crit_chance}"
 
 class Person:
-    def __init__(self, *, title="", health=0, defense=0, magic_proficiency=0, speed=0, weapon: Weapon= Weapon().assign("Fists"), magic={}, items = {}):
-        self.title = title
-        self.weapon = weapon        
-
-        self.health = health
-        self.defense = defense #reduces damage taken
-        self.speed = speed
-        self.magic_proficiency = magic_proficiency #adds to chance of magic working
-        self.items = items
-        self.magic = magic
+    def __init__(self, *, title="", health=0, defense=0, magic_proficiency=0, speed=0, weapon: Weapon= Weapon(), magic={}, items = {}):
+        self.title: str = title
+        self.weapon: Weapon = weapon     
+        self.health: int = health
+        self.defense: int = defense #reduces damage taken
+        self.speed: int = speed
+        self.magic_proficiency: int = magic_proficiency #adds to chance of magic working
+        self.items: dict[str,int] = items
+        self.magic: dict[str,int] = magic
         self.status: list[Status] = []
         self.stopped: bool = False
         self.muted: bool = False
         self.paralyzed: bool = False
-        self.default_speed = speed     
-        self.default_defense = defense           
-        self.max_health = health        
+        self.default_speed: int = speed     
+        self.default_defense: int = defense           
+        self.max_health: int = health        
+        if not(hasattr(self.weapon, "weapon_type")):
+            self.weapon.assign("Fists")          
 
     def apply_status_effects(self):
         if len(self.status) > 0:
@@ -153,6 +155,7 @@ class Person:
 
         if len(self.status)>0:
             for value in self.status[:]:
+                value.duration -= 1
                 if value.duration == 0:
                     self.status.remove(value)
                     print(f"{value.status_name} Expired")
@@ -242,7 +245,7 @@ class Enemy(Person):
                 self.speed = 20
                 self.magic_proficiency = 0
                 self.items = {"Small_Healing_Potion": 5, "Mega_Healing_Potion": 1, "Stick": 5}
-                self.weapon = Weapon().assign("Sword")
+                self.weapon.assign("Sword")
                 self.ai_type = ["Agressive", "Weapon"]
             case "Wrym":
                 self.title = "Wrym"
@@ -267,7 +270,7 @@ class Enemy(Person):
                 self.magic_proficiency = 5
                 self.magic = {"Heal": 10, "Protect": 5, "Fast": 5, "Fireball": 5, "Lightning": 5, "Nuke": 10, "Poison": 5, "Scar": 5}
                 self.items = {"Small_Healing_Potion": 4, "Mega_Healing_Potion": 1, "Grenade": 10} 
-                self.weapon = Weapon().assign("Spear")
+                self.weapon.assign("Spear")
                 self.ai_type = ["Agressive", "Mixed"]
             case "Troll":
                 self.title = "Troll"
@@ -304,7 +307,7 @@ class Enemy(Person):
                 self.speed = 5
                 self.magic_proficiency = 3
                 self.magic = {"Instant_Death": 100}      
-                self.weapon = Weapon().assign("Fists")
+                self.weapon.assign("Fists")
                 self.ai_type = ["Agressive", "Weapon"]
             case "Werewolf":
                 self.title = "Werewolf"
@@ -757,8 +760,111 @@ class MainGame:
         self.menu_screen()
         self.exit_game(noexit=True)
 
-    def action_select(self, person: Player, opponent: Player, action: str) -> None:
-        pass
+    def action_select(self, caster: Person, opponent: Person, action: str) -> None:
+        action_list = action.split()
+        main_action = ""
+        sub_action = ""
+        attack_success = False
+        if len(action_list) > 2 or len(action_list) <= 0:
+            print("action list len error")
+            exit()
+        if len(action_list) == 1:
+            main_action = action_list[0]
+            if main_action != "Weapon":
+                print("main action is not weapon but length of list is 1")
+                exit()
+            sub_action = ""
+        else:
+            main_action = action_list[0]
+            sub_action = action_list[1]
+
+        match main_action:
+            case "Weapon":
+                print(f"{caster.title} attacked with their {caster.weapon.weapon_type}!")
+                success_val = randint(0,100)
+                if success_val <= caster.weapon.accuracy:
+                    success_val = randint(0,100)
+                    if success_val <= caster.weapon.crit_chance:
+                        delta_health = randint(int(caster.weapon.dmg * 1.5), int(caster.weapon.dmg * 2)) - opponent.defense
+                        opponent.health -= delta_health
+                        print(f"{opponent.title} lost {delta_health} health!")  
+                    else: 
+                        delta_health = randint(int(caster.weapon.dmg * 0.8), int(caster.weapon.dmg * 1.2)) - opponent.defense
+                        opponent.health -= delta_health
+                        print(f"{opponent.title} lost {delta_health} health!")  
+                    attack_success = True
+                    return attack_success
+                print(f"{caster.title}'s attack missed!")
+                return attack_success
+            case "Magic":
+                print(f"{caster.title} used a <{sub_action}> spell!")
+                magic_class = Magic()
+                match sub_action:
+                    case "Cure":
+                        attack_success = magic_class.Cure(caster)
+                    case  "Heal":
+                        attack_success = magic_class.Heal(caster)
+                    case "Protect":
+                        attack_success = magic_class.Protect(caster)
+                    case "Fast":
+                        attack_success = magic_class.Fast(caster)
+                    case "Fireball":
+                        attack_success = magic_class.Fireball(caster, opponent)
+                    case "Lightning":
+                        attack_success = magic_class.Lightning(caster, opponent)
+                    case "Nuke":
+                        attack_success = magic_class.Nuke(caster, opponent)
+                    case "Poison":
+                        attack_success = magic_class.Poison(caster, opponent)
+                    case "Instant_Death":
+                        attack_success = magic_class.Instant_Death(caster, opponent)
+                    case "Stop":
+                        attack_success = magic_class.Stop(caster, opponent)
+                    case "Slow":
+                        attack_success = magic_class.Slow(caster, opponent)
+                    case "Mute":
+                        attack_success = magic_class.Mute(caster, opponent)
+                    case "Break":
+                        if type(caster).__name__ != "Enemy":
+                            print("Break can only take enemy type")
+                            exit()
+                        attack_success = magic_class.Break(caster, opponent)
+                    case "Scar":
+                        attack_success = magic_class.Scar(caster, opponent)
+                    case _:
+                        print("Magic Edge case, this should not happen")
+                        print(sub_action)
+                        exit()
+                caster.magic[sub_action] -= 1
+                if caster.magic[sub_action] <= 0:
+                    del caster.magic[sub_action]            
+                return attack_success
+            case "Item":
+                item_class = Items()
+                print(f"{caster.title} used a {sub_action} item!")                
+                match sub_action:
+                    case "Small_Healing_Potion":
+                        attack_success = item_class.Small_Healing_Potion(caster)
+                    case "Mega_Healing_Potion":
+                        attack_success = item_class.Mega_Healing_Potion(caster)
+                    case "Antidote":
+                        attack_success = item_class.Antidote(caster)
+                    case "Grenade":
+                        attack_success = item_class.Grenade(caster, opponent)
+                    case "Stick":
+                        attack_success = item_class.Stick(caster, opponent)
+                    case _:
+                        print("Item Edge case, this should not happen")
+                        print(sub_action)
+                        exit()             
+                caster.items[sub_action] -= 1
+                if caster.items[sub_action] <= 0:
+                    del caster.items[sub_action]                    
+                return attack_success   
+            case _:
+                print("Main Action edge case, this should not happen")
+                print(main_action)
+                exit()
 
     def menu_screen(self) -> None:
         """
@@ -773,7 +879,6 @@ class MainGame:
                 if any((substring in menuinput for substring in inputcheck)) is False:
                     raise ValueError
                 if "PL" in menuinput: #play
-                    self.character_select()
                     break
                 elif "EX" in menuinput: #exits program
                     leave_y = input("Are you really choosing the option of cowardice? Type \"Y\" if you are paralyzed by fear, or proceed with any other input\n-> ").upper()
@@ -788,6 +893,7 @@ class MainGame:
                 print("Select a valid option.\n")
             except KeyError:
                 self.exit_game()
+        self.character_select()                
         return None
 
     def character_select(self) -> None:
@@ -816,7 +922,6 @@ class MainGame:
                     confirm_y = input(f"Is {character} the Fighter you want? Enter Y/N\n-> ").upper() #or confirm
                     if "Y" in confirm_y[0:5]:
                         self.character = character
-                        self.weapon_select_menu()
                         break
                     #else:
                         #kick back to prev option
@@ -825,7 +930,8 @@ class MainGame:
                     raise KeyError
             except ValueError:
                 print("Select a valid option.\n")
-            return None
+        self.weapon_select_menu()                
+        return None
 
     def weapon_select_menu(self) -> None: 
         character = self.character.upper()
@@ -918,12 +1024,12 @@ class MainGame:
                 if any((substring in response for substring in imput_check)): #checks if response
                     choice = weapon_list[[idx for idx, string in enumerate(weapon_list) if response[0:2].title() in string][0]]
                     self.weapon.assign(choice)
-                    self.start_game()
                     break
                 else:
                     raise ValueError
             except ValueError:
-                print("Invalid Input: Please Try Again")                
+                print("Invalid Input: Please Try Again")     
+        self.start_game()                           
         
     def start_game(self) -> None:
         #initialize everything with enemy and player here, with defined values
@@ -938,8 +1044,8 @@ class MainGame:
  
     def game(self) -> None:
         #main game loop
-
-        while True:
+        ending_type: int = 0
+        while ending_type == 0:
 
             #get turn order
             first_player = ""
@@ -953,115 +1059,197 @@ class MainGame:
             #print user options            
             has_magic = False
             has_items = False
+            acceptable_input_nums = []            
             if len(self.player.magic)>0:
                 if any(self.player.magic.values()):
                     has_magic = True
             if len(self.player.items)>0:
                 if any(self.player.items.values()):
                     has_items = True        
-            user_options = ["Attack", "Use Magic", "Use Item"]                                
-            if has_items == False:
-                user_options.pop(2)
-            if has_magic == False:
-                user_options.pop(1)
-            for idx, string in enumerate(user_options):
-                print(idx, "|" + string)
-            acceptable_input_nums = []
-            for i in range(len(user_options)):
-                acceptable_input_nums.append(i+1)
-            print_str_nums = ", ".join(acceptable_input_nums)
-            option_chose = ""
-            #get user selection            
-            while True:
-                try:
-                    user_input = input(f"Pick the option corresponding to the numbers: {print_str_nums}")
-                    if not(user_input.isnumeric()):
-                        raise ValueError
-                    elif int(user_input) not in acceptable_input_nums:
-                        raise ValueError
-                    else:
-                        option_chose = user_options[int(user_input)-1]
-                        if option_chose.startswith("Use "):
-                            option_chose = option_chose[3:]
-                        break
-                except ValueError:
-                    print("Invalid Input.")
-            item_chose = ""
-            magic_chose = ""    
-            if option_chose == "Attack":
-                test= ""
-            elif option_chose ==  "Use Item":
-                user_options = self.player.items
-                for idx, (key, value) in enumerate(user_options):
-                    print(idx, "|" + key, value)
-                acceptable_input_nums = []
-                for i in range(len(user_options)):
-                    acceptable_input_nums.append(i+1)
-                print_str_nums = ", ".join(acceptable_input_nums)
-                #get user selection            
-                while True:
-                    try:
-                        user_input = input(f"Pick the option corresponding to the numbers: {print_str_nums}")
-                        if not(user_input.isnumeric()):
-                            raise ValueError
-                        elif int(user_input) not in acceptable_input_nums:
-                            raise ValueError
-                        else:
-                            item_chose = list(user_options.keys())[int(user_input)-1]
-                            self.player.items[item_chose] -= 1
-                            break
-                    except ValueError:
-                        print("Invalid Input.")       
-            elif option_chose == "Use Magic":
-                user_options = self.player.magic
-                for idx, (key, value) in enumerate(user_options):
-                    print(idx, "|" + key, value)
-                acceptable_input_nums = []
-                for i in range(len(user_options)):
-                    acceptable_input_nums.append(i+1)
-                print_str_nums = ", ".join(acceptable_input_nums)
-                #get user selection            
-                while True:
-                    try:
-                        user_input = input(f"Pick the option corresponding to the numbers: {print_str_nums}")
-                        if not(user_input.isnumeric()):
-                            raise ValueError
-                        elif int(user_input) not in acceptable_input_nums:
-                            raise ValueError
-                        else:
-                            magic_chose = list(user_options.keys())[int(user_input)-1]
-                            break
-                    except ValueError:
-                        print("Invalid Input.")
-            else:
-                print("option chose error")
-                print(option_chose)
-                exit() 
 
+            main_user_options = ["Attack", "Use Magic", "Use Item", "Exit Game"]                                
+            if has_items == False:
+                main_user_options.pop(2)
+            if has_magic == False:
+                main_user_options.pop(1)
+            for idx, string in enumerate(main_user_options):
+                print(idx+1, "| " + string)
+                acceptable_input_nums.append(str(idx+1))
+            main_print_str_nums = ", ".join(acceptable_input_nums)
+            user_input = ""
+            option_chose = ""
+            item_chose = ""
+            magic_chose = ""               
+            confirmed_selection = False
+            #get user selection            
+            while confirmed_selection == False:
+                while True:
+                    try:
+                        user_input = input(f"Pick the option corresponding to the numbers: {main_print_str_nums}\n-> ")
+                        if not(user_input.isnumeric()):
+                            raise ValueError
+                        elif user_input not in acceptable_input_nums:
+                            raise ValueError
+                        else:
+                            option_chose = main_user_options[int(user_input)-1]
+                            if option_chose.startswith("Use "):
+                                option_chose = option_chose[4:]
+                            break
+                    except ValueError:
+                        print("Invalid Input.") 
+
+                if option_chose == "Exit Game":
+                    user_input = input("Do really want to exit? Your progress will be lost 'Y'/'N'").upper()
+                    if "Y" in user_input:
+                        self.exit_game(noexit=True)
+                        
+                elif option_chose == "Attack":
+                    while True:
+                        user_input = input("Type 'Y' to confirm you want to attack, or 'B' or 'N' to go back\n-> ").upper()
+                        if ("N" in user_input) or ("B" in user_input):
+                            break
+                        elif "Y" in user_input:
+                            confirmed_selection = True
+                            break
+                        else:
+                            print("Inccorct letter(s)")
+                
+                
+                elif option_chose ==  "Item":
+                    acceptable_input_nums = []                
+                    user_options = self.player.items
+                    for idx, (key, value) in enumerate(user_options.items()):
+                        if idx == 0:
+                            print(idx+1, "| " + key + ":", value, "Uses left")
+                        else:
+                            print(idx+1, "| " + key + ":", value)
+                        acceptable_input_nums.append(str(idx+1))                    
+                    acceptable_input_nums.append("b")     
+                    print_str_nums: str = ", ".join(acceptable_input_nums) + "ack"
+                    #get user selection            
+                    while True:
+                        try:
+                            user_input = input(f"Pick the option corresponding to the numbers, or 'back' to go back: {print_str_nums}\n-> ").upper()
+                            if "B" in user_input:
+                                break
+                            elif not(user_input.isnumeric()):
+                                raise ValueError
+                            elif user_input not in acceptable_input_nums:
+                                raise ValueError
+                            else:
+                                while True:
+                                    temp_chosen = list(user_options.keys())[int(user_input)-1]                                    
+                                    user_input = input(f"Type 'Y' to confirm you want to use <{temp_chosen}>, or 'B' or 'N' to go back\n-> ").upper()
+                                    if ("N" in user_input) or ("B" in user_input):
+                                        break
+                                    elif "Y" in user_input:
+                                        item_chose = temp_chosen
+                                        confirmed_selection = True      
+                                        break              
+                                    else:
+                                        print("Invalid letter(s)")                    
+                                break
+                        except ValueError:
+                            print("Invalid Input.")  
+
+                elif option_chose == "Magic":
+                    acceptable_input_nums = [] 
+                    user_options = self.player.magic
+                    for idx, (key, value) in enumerate(user_options.items()):
+                        if idx == 0:
+                            print(idx+1, "| " + key + ":", value, "Casts remaining")
+                        else:
+                            print(idx+1, "| " + key + ":", value)
+                        acceptable_input_nums.append(str(idx+1)) 
+                    acceptable_input_nums.append("b")     
+                    print_str_nums: str = ", ".join(acceptable_input_nums) + "ack"
+                    #get user selection            
+                    while True:
+                        try:
+                            user_input = input(f"Pick the option corresponding to the numbers, or 'back' to go back: {print_str_nums}\n-> ").upper()
+                            if "B" in user_input:
+                                break
+                            elif not(user_input.isnumeric()):
+                                raise ValueError
+                            elif user_input not in acceptable_input_nums:
+                                raise ValueError
+                            else:
+                                while True:
+                                    temp_chosen = list(user_options.keys())[int(user_input)-1]                                    
+                                    user_input = input(f"Type 'Y' to confirm you want to use <{temp_chosen}>, or 'B' or 'N' to go back\n-> ").upper()
+                                    if ("N" in user_input) or ("B" in user_input):
+                                        break
+                                    elif "Y" in user_input:                                
+                                        magic_chose = temp_chosen 
+                                        confirmed_selection = True                                  
+                                        break
+                                    else:
+                                        print("Invalid letters(s)")
+                                break
+                        except ValueError:
+                            print("Invalid Input.")
+
+                else:
+                    print("option chose error")
+                    print(option_chose)
+                    exit() 
+            
+            if option_chose == "Attack":
+                option_chose = "Weapon"
             player_choice = option_chose + " " + item_chose + magic_chose
             ai_choice = self.enemy.ai_action()
 
+            #edit choices for next round
+
+            self.player.remove_status_effects()
+            self.enemy.remove_status_effects()
+
             if first_player == "Player":
                 #1st attack
-                self.action_select(self.player, self.enemy, player_choice) #action needs to be done!!!!!!
+                self.action_select(self.player, self.enemy, player_choice)
                 #effects -> check for winner
+                self.enemy.apply_status_effects()
+                print(f"{self.enemy.title} has {self.enemy.health} hp remaining")                
+                if self.enemy.health <= 0:
+                    ending_type = 1
 
                 #2nd attack
                 self.action_select(self.enemy, self.player, ai_choice)
                 #effects -> check for winner
+                self.player.apply_status_effects()
+                print(f"{self.player.title} has {self.player.health} hp remaining")                   
+                if self.player.health <= 0:
+                    ending_type = 2                 
             elif first_player == "Enemy":
                 #1st attack
                 self.action_select(self.enemy, self.player, ai_choice)    
                 #effects -> check for winner 
-
+                self.player.apply_status_effects()
+                print(f"{self.player.title} has {self.player.health} hp remaining")                   
+                if self.player.health <= 0:
+                    ending_type = 2
+                     
                 #2nd attack
                 self.action_select(self.player, self.enemy, player_choice)                   
                 #effects -> check for winner
+                self.enemy.apply_status_effects()
+                print(f"{self.enemy.title} has {self.enemy.health} hp remaining")                 
+                if self.enemy.health <= 0:
+                    ending_type = 1
+                       
 
+        self.ending(ending_type)
 
-        self.ending()
-
-    def ending(self):
+    def ending(self, endings):
+        match endings:
+            case 1:
+                print("You Won !!")
+            case 2:
+                print("You lost! ;c")
+            case _:
+                print("ending edge case, this should not happen")
+                print(endings)
+                exit()
         self.exit_game(noexit=True)
 
 
@@ -1069,13 +1257,6 @@ class MainGame:
         if noexit == False:
             exit()
         print("restarting game...\n")
-
-
-
-
-
-
-
 
 
 
