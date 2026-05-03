@@ -7,6 +7,8 @@ from time import sleep
 """
 
 class Status:
+    """Status effects
+    """
     def __init__(self, name: str, isgood: bool,*, duration: int=3, chance_to_remove: int=20):
         """Status Class, all status effects are of this class
 
@@ -28,7 +30,11 @@ class Status:
         return f"Status Type: {self.status_name}, isGood: {self.isgood}, Duration: {self.duration}, Chance To Remove: {self.chance}"
 
 class Weapon:
+    """Weapon Class
+    """
     def __init__(self): 
+        """Weapon Class, has attributes of weapon_type, dmg, accuracy, and crit_chance
+        """
         self.weapon_type = ""
         self.dmg = 0
         self.accuracy = 0 
@@ -91,7 +97,6 @@ class Weapon:
                 self.accuracy = 100
                 self.crit_chance = 20
     
-
     def __repr__(self):
         return str(self)
     
@@ -99,26 +104,49 @@ class Weapon:
         return f"Weapon Type: {self.weapon_type}, Dmg: {self.dmg}, Accuracy: {self.accuracy}, Crit Chance: {self.crit_chance}"
 
 class Person:
-    def __init__(self, *, title="", health=0, defense=0, magic_proficiency=0, speed=0, weapon: Weapon= Weapon(), magic={}, items = {}):
+    """Person class
+    """
+    def __init__(self, *, title: str="", health: int=0, defense: int=0, magic_proficiency: int=0, speed: int=0, weapon: Weapon= Weapon(), magic: dict[str,int]={}, items: dict[str,int] = {}):
+        """Initilizes all person attributes, and default values
+
+        Args:
+            title (str, optional): Title of Person. Defaults to "".
+            health (int, optional): Health value. Defaults to 0.
+            defense (int, optional): Defense value, reduces damage taken. Defaults to 0.
+            magic_proficiency (int, optional): Magic Proficiency value, increases magic success chance. Defaults to 0.
+            speed (int, optional): Speed Value, determines turn order. Defaults to 0.
+            weapon (Weapon, optional): Weapon object. Defaults to Weapon().
+            magic (dict[str,int], optional): Magic dictionary. Defaults to empty dictionary.
+            items (dict[str,int], optional): Item dictionary. Defaults to empty dictionary.
+        """
+        #main attributes
         self.title: str = title
         self.weapon: Weapon = weapon     
         self.health: int = health
-        self.defense: int = defense #reduces damage taken
+        self.defense: int = defense
         self.speed: int = speed
-        self.magic_proficiency: int = magic_proficiency #adds to chance of magic working
+        self.magic_proficiency: int = magic_proficiency
         self.items: dict[str,int] = items
         self.magic: dict[str,int] = magic
+
+        #status effects attributes
         self.status: list[Status] = []
         self.stopped: bool = False
         self.muted: bool = False
         self.paralyzed: bool = False
+
+        #These regular values can change by effects in the game, so these are used to remember what the original values were
         self.default_speed: int = speed     
         self.default_defense: int = defense           
-        self.max_health: int = health        
+        self.max_health: int = health       
+
+        #edge case if a weapon was not assigned correctly
         if not(hasattr(self.weapon, "weapon_type")):
             self.weapon.assign("Fists")          
 
-    def apply_status_effects(self):
+    def apply_status_effects(self) -> None:
+        """Applies status effects that are currently afflicting the Person, and lowers the duration by 1 for each status effect
+        """
         if len(self.status) > 0:
             for value in self.status:
                 match value.status_name:
@@ -139,18 +167,22 @@ class Person:
                         print(f"{self.title} is slowed! Their speed is currently: {self.speed}!")                           
                     case "Stop":
                         self.stopped = True #cant attack at all
-                        print(f"{self.title} is stopped! {value.duration-1} turns remain til this expires")
+                        print(f"{self.title} is stopped! {value.duration} turn(s) remain til this expires")
                     case "Paralysis":
                         self.paralyzed = True #cant use weapons         
-                        print(f"{self.title} is paralyized! {value.duration-1} turns remain til this expires")                                       
+                        print(f"{self.title} is paralyized! {value.duration} turn(s) remain til this expires")                                       
                     case "Mute":
                         self.muted = True #cant use magic
-                        print(f"{self.title} is muted! {value.duration-1} turns remain til this expires")
+                        print(f"{self.title} is muted! {value.duration} turn(s) remain til this expires")
                     case _: #catchall
                         print("error, invalid status name")
+                        print(value.status_name)
+                        exit_game()
                 value.duration -= 1
 
-    def remove_status_effects(self): #ran right after user picks an option, before apply affects
+    def remove_status_effects(self) -> None: #ran right after user picks an option, before apply affects
+        """Resets altered stats to base values, and removes status effects that expired
+        """
         self.defense = self.default_defense
         self.speed = self.default_speed
         self.paralyzed = False
@@ -158,7 +190,7 @@ class Person:
         self.stopped = False
 
         if len(self.status)>0:
-            for value in self.status[:]:
+            for value in self.status[:]: #compares against a copy of the list to not throw errors
                 remove_val = randint(0,100)                 
                 if value.duration <= 0:
                     self.status.remove(value)
@@ -168,25 +200,32 @@ class Person:
                     print(f"{self.title}'s <{value.status_name}> Expired randomly")
                 else:
                     print(f"{self.title} has <{value.status_name}> for {value.duration} more turns")
-
-    def get_attributes(self) -> dict[str, object]:
-        #found at: https://stackoverflow.com/questions/9058305/getting-attributes-of-a-class
-        for attribute, value in self.__dict__.items():
-            print(attribute + "=" + value)
-        return self.__dict__
     
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return f"{self.title}, {self.health} health, {self.defense} defense, {self.speed} speed, {self.magic_proficiency} magic pro, weapon: {self.weapon.weapon_type}"
+        return f"{self.title}-- Health Points: {self.health}/{self.max_health}, Defense: {self.defense}, Speed: {self.speed}, Magic Proficiency: {self.magic_proficiency}, Weapon: {self.weapon.weapon_type}"
 
 class Player(Person):
+    """Player Class, subclass of Person
+    """
     def __init__(self, title: str, weapon: Weapon):
+        """initilizes attributes for player
+
+        Args:
+            title (str): title of player
+            weapon (Weapon): weapon chosen for player
+        """
         self.assign_attributes(title)
         super().__init__(title=title, weapon=weapon, health=self.health, defense=self.defense, magic_proficiency=self.magic_proficiency, speed=self.speed, magic=self.magic, items=self.items)
     
-    def assign_attributes(self, title: str) -> None:        
+    def assign_attributes(self, title: str) -> None:       
+        """Assigns attributes based on the character selected
+
+        Args:
+            title (str): Title of Person.
+        """        
         match title:
             case "Wizard":
                 self.health = 250
@@ -219,7 +258,7 @@ class Player(Person):
             case _:
                 print("Error, incorrect title")
                 print(self.title)
-                exit()
+                exit_game()
 
     def __repr__(self) -> str:
         return super().__repr__()
@@ -228,17 +267,38 @@ class Player(Person):
         return super().__str__()
 
 class Enemy(Person):
-    def __init__(self):
+    """Enemy Class, subclass of Person
+    """
+    def __init__(self, *, chosen_enemy: str=""):
+        """initilizes and selects a random enemy, or the enemy inputed
+
+        Args:
+            chosen_enemy (str, optional): chosen enemy. Must be in the enemy list. Defaults to "".
+        """
         self.weapon = Weapon()
         self.ai_type = []
-        self.monster_type = ""        
-        self.randomEnemy()
+        self.monster_type = ""  
+        if chosen_enemy != "":
+            self.randomEnemy(chosen_enemy=chosen_enemy)      
+        self.randomEnemy() #give this
         super().__init__(title=self.title, weapon=self.weapon, health=self.health, defense=self.defense, magic_proficiency=self.magic_proficiency, speed=self.speed, magic=self.magic, items=self.items)
 
 
-    def randomEnemy(self):
+    def randomEnemy(self, *, chosen_enemy: str="") -> None:
+        """Selects random enemy and assigns their attributes, selects chosen_enemy if argument is provided
+
+        Args:
+            chosen_enemy (str, optional): user selected enemy. Useful for debugging. Defaults to "".
+        """
         enemy_list = ["Orc", "Wrym", "Hobgoblin", "Troll", "Wolf", "Ogre", "Werewolf", "Shark", "Ghost", "Lich", "Death Eye", "Hydra", "Elemental"]
-        rand_enemy = choice(enemy_list)
+        if chosen_enemy != "":
+            if chosen_enemy not in enemy_list:
+                print("Incorrect enemy chosen, please refer to the code for all avaliable options")
+                exit_game()
+            else:
+                rand_enemy = chosen_enemy
+        else:
+            rand_enemy = choice(enemy_list)
         match rand_enemy:
             case "Orc":
                 self.title = "Orc"
@@ -416,6 +476,11 @@ class Enemy(Person):
                 self.ai_type = ["Cautious", "Mixed"]
 
     def ai_action(self) -> str:
+        """Selects an action for the enemy, weighted by ai_type
+
+        Returns:
+            str: ai action, in form "main_action sub_action"
+        """
         attack = False
         action_choice = ""
         has_negative_status = False
@@ -466,7 +531,7 @@ class Enemy(Person):
                     attack = True
         else:
             print("should not happen. ai_type needs to be Cautious or Agressive")
-            exit()                   
+            exit_game()                   
         if (self.muted == True) and (self.paralyzed == True):
             attack == False
             if len(self.items.items()) == 0:
@@ -536,15 +601,30 @@ class Enemy(Person):
 class Magic:
     """Class of functions for all magic spells
     """
-    #defensive
-    def Cure(self, caster: Person) -> bool:
-        #removes bad status effects
+    #note: all of these functions returns a bool on whether it succeeded or not, but this functionality is unsed in the main game
+    #defensive spells
+    def Cure(self, caster: Person) -> bool: 
+        """Removes negative status effects
+
+        Args:
+            caster (Person): Person to cure
+
+        Returns:
+            bool: If spell succeded or failed
+        """
+
+        if len(caster.status) == 0:
+            print("You have no statuses! GG you just wasted a spell!")
+            return False
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 50):
             positive_effects: list[Status] = []  
             for i in range(len(caster.status)):
                 if caster.status[i].isgood == True:
                     positive_effects.append(caster.status[i])
+            if len(positive_effects) == len(caster.status):
+                print("You had no negative status effects! GG you just wasted a spell")
+                return False
             caster.status.clear()
             if len(positive_effects) > 0:
                 caster.status.extend(positive_effects)
@@ -555,17 +635,35 @@ class Magic:
             return False
 
     def Heal(self, caster: Person) -> bool:
-        #heals user by 20% of max health. 100% chance of success
+        """Heals user by 20% of max health. 100% chance of success
+
+        Args:
+            caster (Person): Person to heal
+
+        Returns:
+            bool: If spell succeded or failed
+        """        
+        if caster.max_health == caster.health:
+            print("You fool, you just wasted a spell. Even your enemy is smarter than this!")
+            return False
         cur_health = caster.health
         caster.health += int(caster.max_health * 0.2)
-        if caster.health > caster.max_health:
+        if caster.health > caster.max_health: 
             caster.health = caster.max_health
         delta_health = caster.health - cur_health
         print(f"{caster.title} gained {delta_health} health!")
         return True
 
     def Protect(self, caster: Person) -> bool:
-        #raises defense
+        """Raises Caster's defense by 20
+
+        Args:
+            caster (Person): Person to raise defense
+
+        Returns:
+            bool: If spell succeded or failed
+        """   
+
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 80):
             caster.status.append(Status("Protect", True, duration=2, chance_to_remove=0))
@@ -576,6 +674,14 @@ class Magic:
             return False
 
     def Fast(self, caster: Person) -> bool:
+        """Raises Caster's speed by 30
+
+        Args:
+            caster (Person): Person to raise speed
+
+        Returns:
+            bool: If spell succeded or failed
+        """          
         #increases speed
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 80):
@@ -588,7 +694,15 @@ class Magic:
 
     #offensive
     def Fireball(self, caster: Person, opponent: Person) -> bool:
-        #fireball. small chance to inflict burn
+        """Chance to hit opponent with a fireball doing 40-60 damage, with a chance to inflict Burn
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """          
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 65):
             damage = randint(40,60) - opponent.defense
@@ -604,7 +718,15 @@ class Magic:
             return False
             
     def Lightning(self, caster: Person, opponent: Person) -> bool:
-        #lightning. chance to inflict paralysis
+        """Chance to hit opponent with a Lightning spell doing 40-60 damage, with a chance to inflict Paralysis
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """     
         title_boost = 1
         if "Shark" == opponent.title:
             title_boost = 2
@@ -624,6 +746,15 @@ class Magic:
             return False
 
     def Nuke(self, caster: Person, opponent: Person) -> bool:
+        """Chance to hit opponent with a Nuke doing 100-150 damage, dealing 50-100 damage to yourself aswell
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         #high damage, hits caster aswell. Low number of uses
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency * 2 + 35):
@@ -642,6 +773,15 @@ class Magic:
             return False
 
     def Break(self, caster: Enemy, opponent: Player) -> bool:
+        """Chance to break all of 1 random item in the opponent's item list 
+
+        Args:
+            caster (Enemy): Enemy casting the spell
+            opponent (Player): Player affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         #chance to break items in player inventory - enemy specific
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 50):
@@ -659,13 +799,25 @@ class Magic:
             return False
 
     def Scar(self, caster: Person, opponent: Person) -> bool:
-        #chance to lower opponent max health by 7.5%
+        """Chance to permantly lower opponent Max health by 7.5%, then deal 30-50 damage
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """              
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency * 2 + 30):
             old_max = opponent.max_health
-            opponent.max_health -= int(opponent.max_health * 0.05)
+            old_health = opponent.health
+            opponent.max_health -= int(opponent.max_health * 0.075)
             if opponent.health > opponent.max_health:
                 opponent.health = opponent.max_health
+            opponent_damage = randint(30,50) - opponent.defense
+            opponent.health -= opponent_damage
+            print(f"{opponent.title} lost {old_health-opponent.health} health!")            
             print(f"{opponent.title} got Scarred! They permantly lost 5% of their max health ({old_max} -> {opponent.max_health})")
             return True
         else:
@@ -674,18 +826,34 @@ class Magic:
 
     #offensive status effects
     def Poison(self, caster: Person, opponent: Person) -> bool:
-        #posion. high chance to inflict poison
+        """Chance to afflict opponent with Poison, dealing 5% of their max health per turn
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 70):
             opponent.status.append(Status("Poison", False, duration=6))
-            print(f"{opponent.title} got aflicted with Poison! They will lost 5%HP per turn til it expires!")
+            print(f"{opponent.title} got aflicted with Poison! They will lose 5%MaxHP per turn til it expires!")
             return True
         else:
             print(f"{caster.title}'s Poison spell missed!")
             return False
 
     def Instant_Death(self, caster: Person, opponent: Person) -> bool:
-        #chance to make an opponent die instantly. very low chance
+        """Chance to kill opponent instantly, Base chance of 5%, scales with magic profficiency - max chance caps at 20%
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         success_val = randint(0,100)
         max_chance = min(caster.magic_proficiency * 2, 20)
         if success_val <= (max_chance + 5):
@@ -697,7 +865,15 @@ class Magic:
             return False
 
     def Stop(self, caster: Person, opponent: Person) -> bool:
-        #chance to make opponent lose a turn
+        """Chance to afflict opponent with Stop- opponent cannot make an action that turn
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency * 2 + 15):
             opponent.status.append(Status("Stop", False, duration=2))
@@ -708,7 +884,15 @@ class Magic:
             return False
 
     def Slow(self, caster: Person, opponent: Person) -> bool:
-        #lowers opponent's speed
+        """Chance to lower opponent's speed by 30
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 85):
             opponent.status.append(Status("Slow", False, chance_to_remove=10))
@@ -719,6 +903,15 @@ class Magic:
             return False
 
     def Mute(self, caster: Person, opponent: Person) -> bool:
+        """Chance to afflict opponent with Mute- opponent cannot use magic
+
+        Args:
+            caster (Person): Person casting the spell
+            opponent (Person): Person affected by spell
+
+        Returns:
+            bool: If spell succeded or failed
+        """             
         #chance to make opponent not able to cast spells
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency * 2 + 45):
@@ -733,6 +926,17 @@ class Items:
     """Item Functions
     """
     def Small_Healing_Potion(self, caster: Person) -> bool:
+        """Small healing potion, healing 30%MaxHP
+
+        Args:
+            caster (Person): Person using item
+
+        Returns:
+            bool: If item succeded or failed
+        """
+        if caster.health == caster.max_health:
+            print("Your HP is maxed already! You just wasted an item GG")
+            return False
         cur_health = caster.health
         caster.health += int(caster.max_health * 0.3)
         if caster.health > caster.max_health:
@@ -742,6 +946,17 @@ class Items:
         return True
 
     def Mega_Healing_Potion(self, caster: Person):
+        """Mega healing potion, healing 60%MaxHP
+
+        Args:
+            caster (Person): Person using item
+
+        Returns:
+            bool: If item succeded or failed
+        """        
+        if caster.health == caster.max_health:
+            print("Your HP is maxed already! You just wasted a RARE item.\nGG you fool")
+            return False
         cur_health = caster.health
         caster.health += int(caster.max_health * 0.6)
         if caster.health > caster.max_health:
@@ -751,10 +966,24 @@ class Items:
         return True
 
     def Antidote(self, caster: Person) -> bool:
+        """Antidote potion, cures all negative effects
+
+        Args:
+            caster (Person): Person using item
+
+        Returns:
+            bool: If item succeded or failed
+        """   
+        if len(caster.status) == 0:
+            print("You have no statuses! GG you just wasted a spell!")
+            return False        
         positive_effects: list[Status] = []  
         for i in range(len(caster.status)):
             if caster.status[i].isgood == True:
                 positive_effects.append(caster.status[i])
+        if len(positive_effects) == len(caster.status):
+            print("You had no negative status effects! GG you just wasted a spell")
+            return False                
         caster.status.clear()
         if len(positive_effects) > 0:
             caster.status.extend(positive_effects)
@@ -762,6 +991,15 @@ class Items:
         return True
 
     def Grenade(self, caster: Person, opponent: Person) -> bool:
+        """Grenade item, Chance to deal 40-60 dmg
+
+        Args:
+            caster (Person): Person using item
+            opponent (Person): Person affected by item
+
+        Returns:
+            bool: If item succeded or failed
+        """         
         success_val = randint(0,100)
         if success_val <= 90:
             damage = randint(40,60) - opponent.defense
@@ -773,6 +1011,15 @@ class Items:
             return False
 
     def Stick(self, caster: Person, opponent: Person) -> bool:
+        """Stick Item, increases opponent's dmg by 2, and has a chance to deal 140-160 dmg to opponent
+
+        Args:
+            caster (Person): Person using item
+            opponent (Person): Person affected by item
+
+        Returns:
+            bool: If item succeded or failed
+        """        
         success_val = randint(0,100)
         title_boost = 0
         opponent.weapon.dmg += 2        
@@ -792,6 +1039,8 @@ class MainGame:
     """Main game object
     """
     def __init__(self) -> None:
+        """assigns base gamme attributes, then goes into menu_screen()
+        """
         self.character = ""
         self.weapon = Weapon()
         self.player: Player
@@ -800,20 +1049,30 @@ class MainGame:
         self.endless = False
         self.menu_screen()
 
-    def action_select(self, caster: Person, opponent: Person, action: str) -> None:
+    def action_select(self, caster: Person, opponent: Person, action: str) -> bool:
+        """Does the action the caster selected
+
+        Args:
+            caster (Person): Person doing the action
+            opponent (Person): Person affected by the action
+            action (str): action str chosen
+
+        Returns:
+            bool: action_success 
+        """
         action_list = action.split()
         main_action = ""
         sub_action = ""
         attack_success = False
         if len(action_list) > 2 or len(action_list) <= 0:
             print("action list len error")
-            exit()
+            exit_game()
         if len(action_list) == 1:
             main_action = action_list[0]
             check = ["Weapon", "Continue"]
             if main_action not in check:
                 print("main action is not weapon but length of list is 1")
-                exit()
+                exit_game()
             sub_action = ""
         else:
             main_action = action_list[0]
@@ -822,7 +1081,7 @@ class MainGame:
         match main_action:
             case "Continue":
                 print("No action taken this turn")
-                return False
+                return attack_success
             case "Weapon":
                 print(f"{caster.title} attacked with their {caster.weapon.weapon_type}!")
                 success_val = randint(0,100)
@@ -871,14 +1130,14 @@ class MainGame:
                     case "Break":
                         if type(caster).__name__ != "Enemy":
                             print("Break can only take enemy type")
-                            exit()
+                            exit_game()
                         attack_success = magic_class.Break(caster, opponent)
                     case "Scar":
                         attack_success = magic_class.Scar(caster, opponent)
                     case _:
                         print("Magic Edge case, this should not happen")
                         print(sub_action)
-                        exit()
+                        exit_game()
                 caster.magic[sub_action] -= 1
                 if caster.magic[sub_action] <= 0:
                     del caster.magic[sub_action]            
@@ -900,7 +1159,7 @@ class MainGame:
                     case _:
                         print("Item Edge case, this should not happen")
                         print(sub_action)
-                        exit()             
+                        exit_game()             
                 caster.items[sub_action] -= 1
                 if caster.items[sub_action] <= 0:
                     del caster.items[sub_action]                    
@@ -908,9 +1167,15 @@ class MainGame:
             case _:
                 print("Main Action edge case, this should not happen")
                 print(main_action)
-                exit()
+                exit_game()
 
     def selection_descriptions(self, main_selection: str, sub_selection: str) -> None:   
+        """Gets descritions for the selected action
+
+        Args:
+            main_selection (str): Main selection, either Attack, Magic, or Item
+            sub_selection (str): Sub selection in the main selection
+        """
         match main_selection:
             case "Attack":
                 print(f"{self.player.weapon}")
@@ -955,7 +1220,7 @@ class MainGame:
                         print(f"Description: Afflicts enemy with Poison for 6 turns, causing them to lose 5% of their max hp per turn\n---Poison Spell---")
                     case "Instant_Death":
                         max_percent = min(2*self.player.magic_proficiency, 20) + 5
-                        print(f"---Instant_Death Spell---\nChance to succeed (max of 25%): 5% + 2*{self.player.magic_proficiency} magic profficiency = {max_percent}%")
+                        print(f"---Instant_Death Spell---\nChance to succeed (max of 20%): 5% + 2*{self.player.magic_proficiency} magic profficiency = {max_percent}%")
                         print(f"Description: Instantly kills opponent\n---Instant_Death Spell---")
                     case "Stop":
                         max_percent = min(100, 2*self.player.magic_proficiency+15)
@@ -976,11 +1241,11 @@ class MainGame:
                     case "Scar":
                         max_percent = min(100, 2*self.player.magic_proficiency+30)
                         print(f"---Scar Spell---\nChance to succeed: 30% + 2*{self.player.magic_proficiency} magic profficiency = {max_percent}%")
-                        print(f"Description: Opponent permantly loses 5% of their Max HP\n---Scar Spell---")
+                        print(f"Description: Opponent permantly loses 7.5% of their Max HP and deals 30-50 dmg\n---Scar Spell---")
                     case _:
                         print("Magic DESCRIPTION edge case, this should not happen")
                         print(main_selection,sub_selection)
-                        exit()
+                        exit_game()
             case "Item":
                 match sub_selection:
                     case "Small_Healing_Potion":
@@ -1008,13 +1273,18 @@ class MainGame:
                     case _:
                         print("Item DESCRIPTION Edge case, this should not happen")
                         print(main_selection, sub_selection)
-                        exit()             
+                        exit_game()             
             case _:
                 print("Main Selection DESCRIPTION edge case, this should not happen")
                 print(main_selection)
-                exit()
+                exit_game()
 
-    def user_input(self) -> str:
+    def user_action_select(self) -> str:
+        """Gets user action, restricting it allowed actions by game state
+
+        Returns:
+            str: string in form 'main_action sub_action'
+        """
         has_magic = False
         has_items = False           
         if len(self.player.magic)>0:
@@ -1074,7 +1344,7 @@ class MainGame:
             if option_chose == "Exit Game":
                 user_input = input("Do really want to exit? Your progress will be lost 'Y'/'N'\n-> ").upper()
                 if "Y" in user_input:
-                    self.exit_game()
+                    exit_game()
             elif option_chose == "Continue":
                 confirmed_selection = True                    
             elif option_chose == "Attack":
@@ -1165,7 +1435,7 @@ class MainGame:
             else:
                 print("option chose error")
                 print(option_chose)
-                exit() 
+                exit_game() 
         
         #find action associated with user selection
         if option_chose == "Attack":
@@ -1174,8 +1444,7 @@ class MainGame:
         return player_choice      
 
     def menu_screen(self) -> None:
-        """
-            This function prints the main menu screen as well as handles all validations required from the user.
+        """This function prints the main menu screen as well as handles all validations required from the user, then goes into character_select()
         """
         # menu_text: str = "play, exit"
         # print(menu_text)
@@ -1192,25 +1461,44 @@ class MainGame:
                     if leave_y == "Y":
                         print("The art of violent confrontation is not for the meek.")
                         print(".\n.\n.\nExiting Arena.")
-                        self.exit_game()
+                        exit_game()
                 else: #this is for wrong inputs not caught
                     print("You weren't supposed to see this.\n")
                     raise KeyError
             except ValueError:
                 print("Select a valid option.\n")
             except KeyError:
-                self.exit_game()
+                exit_game()
         self.character_select()                
         return None
 
     def character_select(self) -> None:
-        """
-            This function prints the character selection. 
+        """Gets character selection from user, then goes into weapon_select_menu()
         """
         while True:
-            menu_cs_text: str = "available warriors: Wizard, Waffle House Employee, Toddler, Rogue"
+            menu_cs_text: str = """
+                ------------------------------------------
+                            Pick Your Character
+                ------------------------------------------
+                              |  
+                     Wizard   |      Type Wizard To Pick
+                              |  
+                ------------------------------------------
+                     Waffle   |      
+                      House   |      Type Waffle To Pick
+                    Employee  |          
+                ------------------------------------------
+                              |  
+                    Toddler   |      Type Toddler To Pick
+                              | 
+                ------------------------------------------
+                              |
+                     Rogue    |      Type Rogue To Pick
+                              |
+                -------------------------------------------
+                """
             print(menu_cs_text)
-            menuinput: str = input("Choose your Fighter. Enter Fighter type or \"Exit\"\n-> ").upper()
+            menuinput: str = input("Enter Fighter type or \"Exit\"\n-> ").upper()
             inputcheck: list = ["WI", "WA", "TO", "RO", "EX"] #checking substrings for higher chance of getting right thing
             character: str = ""
             try: #first layer of input validation
@@ -1220,7 +1508,7 @@ class MainGame:
                     leave_y = input("Do you really want to leave? Type \"Y\" if so or anything else to continue.\n-> ")
                     if leave_y == "Y":
                         print(".\n.\n.\nExiting Arena.")
-                        self.exit_game()
+                        exit_game()
                 elif "WI" or "WA" or "TO" or "RO" in menuinput: #continues with char select
                     character_list = ["WIZARD", "WAFFLE HOUSE EMPLOYEE", "TODDLER", "ROUGE"]
                     #https://stackoverflow.com/questions/2170900/get-first-list-index-containing-sub-string
@@ -1241,8 +1529,11 @@ class MainGame:
         return None
 
     def weapon_select_menu(self) -> None: 
+        """Gets user input for their chosen weapon, then assigns that weapon as an attribute 'weapon', then goes into start_game()
+        """
         character = self.character.upper()
         weapon_list = []
+        print("\n\n\n\n\n\n")
         print_statement = ""
         match character:
             case "WIZARD":
@@ -1339,9 +1630,12 @@ class MainGame:
         self.start_game()                           
         
     def start_game(self) -> None:
-        #initialize everything with enemy and player here, with defined values
+        """Initializes everything with enemy and player, with defined values, then goes into game()
+        """
         if self.enemies_killed == 0:
             self.player: Player = Player(self.character, self.weapon)
+            del self.character
+            del self.weapon
         print(self.player)
         self.enemy = Enemy()
         print("\nYour opponent is...")
@@ -1349,7 +1643,8 @@ class MainGame:
         self.game()
  
     def game(self) -> None:
-        #main game loop
+        """Main game loop, plays until a Person's health is below 0 or user inputs Exit
+        """
         ending_type: int = 0
         turn = 0
         while ending_type == 0:
@@ -1366,7 +1661,7 @@ class MainGame:
             #do actions
             if first_player == "Player":
                 #1st attack
-                player_choice = self.user_input()
+                player_choice = self.user_action_select()
                 #edit choices for next round
                 self.player.remove_status_effects()                                
                 self.action_select(self.player, self.enemy, player_choice)
@@ -1375,6 +1670,8 @@ class MainGame:
                 print(f"{self.enemy.title} has {self.enemy.health} HP remaining")                
                 if self.enemy.health <= 0:
                     ending_type = 1
+                    if self.player.health <= 0:
+                        ending_type = 3
 
                 #2nd attack
                 ai_choice = self.enemy.ai_action() 
@@ -1385,7 +1682,9 @@ class MainGame:
                 self.player.apply_status_effects()
                 print(f"{self.player.title} has {self.player.health} HP remaining")                   
                 if self.player.health <= 0:
-                    ending_type = 2                 
+                    ending_type = 2          
+                    if self.enemy.health <= 0:
+                        ending_type = 3                           
             elif first_player == "Enemy":
                 ai_choice = self.enemy.ai_action()
                 #edit choices for next round                   
@@ -1395,10 +1694,12 @@ class MainGame:
                 self.player.apply_status_effects()
                 print(f"{self.player.title} has {self.player.health} HP remaining")                   
                 if self.player.health <= 0:
-                    ending_type = 2                          
+                    ending_type = 2   
+                    if self.enemy.health <= 0:
+                        ending_type = 3                                             
                      
                 #2nd attack
-                player_choice = self.user_input()  
+                player_choice = self.user_action_select()  
                 #edit choices for next round                  
                 self.player.remove_status_effects()                                
                 self.action_select(self.player, self.enemy, player_choice)
@@ -1406,12 +1707,19 @@ class MainGame:
                 self.enemy.apply_status_effects()
                 print(f"{self.enemy.title} has {self.enemy.health} HP remaining")                
                 if self.enemy.health <= 0:
-                    ending_type = 1               
+                    ending_type = 1     
+                    if self.player.health <= 0:
+                        ending_type = 3                                
                        
 
         self.ending(ending_type)
 
-    def ending(self, endings) -> None:
+    def ending(self, endings: int) -> None:
+        """Gets correct ending for inputed ending type
+
+        Args:
+            endings (_type_): Win condition, 1=Win, 2=Lose, 3=Both died (tie) 
+        """
         match endings:
             case 1:
                 print("You Won !!")
@@ -1423,10 +1731,13 @@ class MainGame:
                 print("You lost! ;c")
                 if self.endless == True:
                     print(f"Total Enemies killed: {self.enemies_killed}!")
+            case 3:
+                print("You both died!")
+                print("Ties may end up friendly in most games, but here, youre dead.\nYou lost!")
             case _:
                 print("ending edge case, this should not happen")
                 print(endings)
-                exit()
+                exit_game()
         if self.endless == False:
             user_input = input("Do you want to try to fight more monsters? 'Y'/'N'\n-> ").upper()
             if "Y" in user_input:
@@ -1436,12 +1747,21 @@ class MainGame:
                 print(f"{self.enemies_killed} killed")
                 self.start_game()
             else:
-                self.exit_game(noexit=True)
+                exit_game(noexit=True)
 
-    def exit_game(self, noexit=False) -> NoReturn:
-        if noexit == False:
-            exit()
-        print("restarting game...\n")
+def exit_game(self, noexit=False) -> NoReturn:
+    """Exit game function
+
+    Args:
+        noexit (bool, optional): Paramater if you dont want to exit the game. Defaults to False.
+
+    Returns:
+        NoReturn: exit program class
+    """
+    if noexit == False:
+        exit()
+    print("restarting game...\n")
+
 
 
 
