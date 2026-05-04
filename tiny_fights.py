@@ -1225,7 +1225,8 @@ class MainGame:
         self.weapon = Weapon()
         self.player: Player
         self.enemy: Enemy
-        self.enemies_killed = 0
+        self.enemies_killed: int = 0
+        self.turn: int = 0
         self.endless = False
         self.menu_screen()
 
@@ -1858,12 +1859,11 @@ class MainGame:
         """Main game loop, plays until a Person's health is below 0 or user inputs Exit
         """
         ending_type: int = 0
-        turn = 0
         while ending_type == 0:
-            turn += 1
+            self.turn += 1
             player_cur_health = self.player.health
             enemy_cur_health = self.enemy.health
-            print(f"\n\n    Turn {turn}:\n---------------")
+            print(f"\n\n    Turn {self.turn}:\n---------------")
             sleep_func(1)
             print(f"{self.player.title}: {self.player.health}/{self.player.max_health}HP, {self.player.speed} Speed", end="")
             if self.player.base_dmg != 0:
