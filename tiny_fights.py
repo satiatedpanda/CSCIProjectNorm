@@ -159,7 +159,7 @@ class Person:
                         self.speed += 30       
                         print(f"{self.title} has been sped up! Their speed is currently: {self.speed}!")                                        
                     case "Slow":
-                        self.speed -= 30  
+                        self.speed = max(self.speed-30,0)  
                         print(f"{self.title} is slowed! Their speed is currently: {self.speed}!")                           
                     case "Stop":
                         self.stopped = True #cant attack at all
@@ -982,8 +982,10 @@ class Magic:
         """             
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 85):
+            old_speed = opponent.speed
+            delta_speed = old_speed - max(0, opponent.speed-30)
             opponent.status.append(Status("Slow", False, chance_to_remove=10))
-            print(f"{opponent.title} got slowed! They lost 30 speed!")
+            print(f"{opponent.title} got slowed! They lost {delta_speed} speed!")
             return True
         else:
             print(f"{caster.title}'s Slow spell missed!")
