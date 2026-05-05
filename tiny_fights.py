@@ -824,7 +824,7 @@ class Magic:
         """          
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 65):
-            damage = max(0,(randint(40,60) - opponent.defense + caster.base_dmg))
+            damage = max(5,(randint(40,60) - opponent.defense + caster.base_dmg))
             opponent.health -= damage
             print(f"{opponent.title} lost {damage} health!")            
             success_val = randint(0,100)
@@ -851,7 +851,7 @@ class Magic:
             title_boost = 2
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency + 55):
-            opponent_damage = max(0,((randint(40,60) + caster.base_dmg) * title_boost - opponent.defense))
+            opponent_damage = max(5,((randint(40,60) + caster.base_dmg) * title_boost - opponent.defense))
             opponent.health -= opponent_damage
             print(f"{opponent.title} lost {opponent_damage} health!")            
             success_val = randint(0,100)
@@ -877,10 +877,10 @@ class Magic:
         #high damage, hits caster aswell. Low number of uses
         success_val = randint(0,100)
         if success_val <= (caster.magic_proficiency * 2 + 35):
-            opponet_damage = max(0,((randint(100,150) + caster.base_dmg) - opponent.defense))
+            opponet_damage = max(5,((randint(100,150) + caster.base_dmg) - opponent.defense))
             opponent.health -= opponet_damage
             print(f"{opponent.title} lost {opponet_damage} health!")
-            caster_damage = max(0,((randint(50,100) + caster.base_dmg) - caster.defense))
+            caster_damage = max(5,((randint(50,100) + caster.base_dmg) - caster.defense))
             caster.health -= caster_damage
             print(f"{caster.title} got hit by the shockwave!")
             print(f"{caster.title} lost {caster_damage} health!")
@@ -934,7 +934,7 @@ class Magic:
             opponent.max_health -= int(opponent.max_health * 0.075)
             if opponent.health > opponent.max_health:
                 opponent.health = opponent.max_health
-            opponent_damage = max(0,((randint(30,50) + caster.base_dmg) - opponent.defense))
+            opponent_damage = max(5,((randint(30,50) + caster.base_dmg) - opponent.defense))
             opponent.health -= opponent_damage
             print(f"{opponent.title} lost {old_health-opponent.health} health!")            
             print(f"{opponent.title} got Scarred! They permantly lost 5% of their max health ({old_max} -> {opponent.max_health})")
@@ -1164,7 +1164,7 @@ class Items:
         """         
         success_val = randint(0,100)
         if success_val <= 90:
-            damage = max(0,((randint(40,60) + caster.base_dmg) - opponent.defense))
+            damage = max(5,((randint(40,60) + caster.base_dmg) - opponent.defense))
             opponent.health -= damage
             print(f"{opponent.title} lost {damage} health!")            
             return True
